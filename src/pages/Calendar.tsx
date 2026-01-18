@@ -122,7 +122,7 @@ export default function Calendar() {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <Navigation />
+      <Navigation activeTab="calendar" onTabChange={() => {}} onLogout={() => {}} />
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto p-8 space-y-6">
           {/* Header */}

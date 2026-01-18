@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import { mockCourseAnalytics } from "@/data/mockData";
 import {
@@ -24,6 +25,7 @@ import {
 export default function CourseAnalytics() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const courseId = parseInt(id || "0");
 
   const analytics = mockCourseAnalytics[courseId];
@@ -31,7 +33,7 @@ export default function CourseAnalytics() {
   if (!analytics) {
     return (
       <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <Navigation />
+        <Navigation activeTab="analytics" onTabChange={() => {}} onLogout={logout} />
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto p-8">
             <Alert>
@@ -50,7 +52,7 @@ export default function CourseAnalytics() {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <Navigation />
+      <Navigation activeTab="analytics" onTabChange={() => {}} onLogout={logout} />
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto p-8 space-y-6">
           {/* Header */}
@@ -203,10 +205,6 @@ export default function CourseAnalytics() {
                             <Progress
                               value={dist.percentage}
                               className="w-24 h-2"
-                              style={{ 
-                                //@ts-ignore
-                                "--progress-background": barColors[idx] 
-                              }}
                             />
                             <span className="text-slate-300 w-12 text-right">
                               {dist.count} ({dist.percentage.toFixed(1)}%)

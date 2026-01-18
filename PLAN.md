@@ -2,7 +2,7 @@
 
 ## Current Status Overview
 
-### ✅ COMPLETED (14 items)
+### ✅ COMPLETED (17 items)
 
 #### 1. Authentication & Role Selection
 - **Files:** `AuthForm.tsx`, `AuthContext.tsx`
@@ -229,44 +229,65 @@
   - Results count display
   - Only shows pending submissions (status filtering)
 
+#### 15. Course Analytics Page
+- **Files:** `CourseAnalytics.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Route: `/courses/:id/analytics`
+  - Lecturer-only page with comprehensive course insights
+  - Quick stats: total students, average grade, submission rate, top performer
+  - Grade distribution bar chart (5 ranges with color coding)
+  - Performance trend line chart (scores over time)
+  - Top performers list (top 3 students with rankings)
+  - Struggling students list (students needing support)
+  - Assignment performance breakdown (each assignment's avg score and submission rate)
+  - Tabbed interface: Overview, Assignments, Students
+  - Export report button (mock functionality)
+  - Color-coded badges and progress bars throughout
+  - Integrated with mockCourseAnalytics data for 3 courses
+
+#### 16. Calendar Page
+- **Files:** `Calendar.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Route: `/calendar`
+  - Full month calendar view with interactive date selection
+  - Assignment deadlines auto-populated from course data
+  - Personal goals integration from mockPersonalGoals
+  - Color-coded event indicators (violet for assignments, blue for study goals, etc.)
+  - Click date to view events for that day
+  - Upcoming events sidebar (next 7 days)
+  - Create goal dialog with full form (title, description, category, date/time)
+  - Event type legend (assignments, overdue, study, health, personal)
+  - Today highlighting and navigation (previous/next month, today button)
+  - Events displayed with course names and times
+  - Overdue assignment indicators in red
+  - Responsive grid layout with proper spacing
+
+#### 17. Goals Page
+- **Files:** `Goals.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Route: `/goals`
+  - Full CRUD functionality for personal goals
+  - Statistics cards: total goals, completed, completion rate, upcoming
+  - Create goal dialog (title, description, category, target date/time)
+  - Tabbed view: To Do, Completed, All
+  - Checkbox toggle for goal completion status
+  - Edit goal dialog (all fields editable)
+  - Delete goal with single click
+  - Category filter (all, study, personal, health, career, other)
+  - Status filter (all, todo, done)
+  - Color-coded category badges (blue for study, emerald for health, etc.)
+  - Overdue goal badges for past-due items
+  - Goal cards show: title, description, category, date/time, actions
+  - Empty states for each tab with helpful messages
+  - Results count display showing filtered vs total
+  - Full state management with useState hooks
+
 ---
 
-## 🔲 REMAINING TASKS (10 items)
-
-### Priority 4: Organization Features
-- **Location:** Create `src/pages/CourseAnalytics.tsx`
-- **Route:** `/courses/:id/analytics`
-- **Contains:**
-  - Grade distribution chart (bar chart)
-  - Average score per assignment (line chart)
-  - Submission rate over time
-  - Top/bottom performers list
-  - Export button (future feature)
-
----
-
-### Priority 4: Organization Features
-
-#### Task 16: Calendar Page
-- **Location:** Create `src/pages/Calendar.tsx`
-- **Route:** `/calendar`
-- **Contains:**
-  - Full calendar view (month/week/day toggle)
-  - Academic events (assignment due dates - auto-populated)
-  - Personal goals (user-created events)
-  - Click date → create new goal
-  - Click event → view details
-- **Use:** react-big-calendar or build custom
-
-#### Task 17: Personal Goals Page
-- **Location:** Create `src/pages/Goals.tsx`
-- **Route:** `/goals`
-- **Contains:**
-  - Goal creation form (title, date, category)
-  - Goal list with checkboxes (todo/done)
-  - Categories: Study, Personal, Health, etc.
-  - Filter by status, category
-  - Edit/delete goals
+## 🔲 REMAINING TASKS (7 items)
 
 #### Task 18: Notifications System
 - **Location:** Create `src/components/NotificationDropdown.tsx`
@@ -397,9 +418,10 @@ This is the CORE MECHANIC of the app.
 6. ✅ Task 12: Submission History Page
 7. ✅ Task 14: Grading Queue Page
 
-### Phase 4: Organization (Tasks 16, 17) ← NEXT
-8. Task 16: Calendar Page
-9. Task 17: Goals Page
+### Phase 4: Organization (Tasks 16, 17) ✅ COMPLETE (Tasks 15-17)
+8. ✅ Task 15: Course Analytics Page
+9. ✅ Task 16: Calendar Page
+10. ✅ Task 17: Goals Page
 
 ### Phase 5: Analytics & Notifications (Tasks 15, 18)
 10. Task 15: Course Analytics
