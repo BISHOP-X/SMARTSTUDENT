@@ -1,0 +1,338 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SmartStudent Design System - Cinematic & Premium LMS */
+
+@layer base {
+  :root {
+    /* Core Background - Deep Navy */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    /* Card Surfaces - Subtle elevation */
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+
+    /* Popover - Slightly elevated */
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary - Soft Teal */
+    --primary: 185 60% 45%;
+    --primary-foreground: 222 47% 6%;
+
+    /* Secondary - Muted Blue */
+    --secondary: 215 30% 18%;
+    --secondary-foreground: 210 40% 95%;
+
+    /* Muted - Subtle backgrounds */
+    --muted: 220 30% 12%;
+    --muted-foreground: 215 20% 60%;
+
+    /* Accent - Warm Amber for highlights */
+    --accent: 35 100% 55%;
+    --accent-foreground: 222 47% 6%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Borders & Inputs */
+    --border: 220 30% 18%;
+    --input: 220 30% 15%;
+    --ring: 185 60% 45%;
+
+    /* Radius */
+    --radius: 0.75rem;
+
+    /* Custom Colors */
+    --success: 160 84% 39%;
+    --success-foreground: 210 40% 98%;
+    
+    --warning: 45 93% 58%;
+    --warning-foreground: 222 47% 6%;
+    
+    --info: 200 85% 55%;
+    --info-foreground: 222 47% 6%;
+
+    /* Glass Morphism */
+    --glass: 220 30% 98% / 0.08;
+    --glass-border: 220 30% 98% / 0.15;
+    --glass-highlight: 220 30% 98% / 0.25;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(185 60% 45%) 0%, hsl(200 70% 50%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(35 100% 55%) 0%, hsl(25 100% 50%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(222 47% 10%) 0%, hsl(222 47% 6%) 100%);
+    --gradient-glow: radial-gradient(circle at center, hsl(185 60% 45% / 0.15) 0%, transparent 70%);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px -2px hsl(222 47% 4% / 0.5);
+    --shadow-md: 0 8px 24px -8px hsl(222 47% 4% / 0.6);
+    --shadow-lg: 0 16px 48px -12px hsl(222 47% 4% / 0.7);
+    --shadow-glow: 0 0 40px -10px hsl(185 60% 45% / 0.4);
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 85%;
+    --sidebar-primary: 185 60% 45%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 220 30% 15%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 220 30% 15%;
+    --sidebar-ring: 185 60% 45%;
+  }
+
+  /* We're designing dark-first, so .dark inherits root */
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/30;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer components {
+  /* Glass Card Component */
+  .glass-card {
+    @apply relative overflow-hidden rounded-xl;
+    background: hsl(var(--glass));
+    border: 1px solid hsl(var(--glass-border));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--glass-highlight)), transparent);
+  }
+
+  /* Glow Effect */
+  .glow {
+    position: relative;
+  }
+
+  .glow::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: var(--gradient-primary);
+    filter: blur(20px);
+    opacity: 0.3;
+    z-index: -1;
+    border-radius: inherit;
+    transition: opacity 0.3s ease;
+  }
+
+  .glow:hover::after {
+    opacity: 0.5;
+  }
+
+  /* Image overlay for text readability */
+  .image-overlay {
+    position: relative;
+  }
+
+  .image-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      hsl(222 47% 6% / 0.9) 0%,
+      hsl(222 47% 6% / 0.4) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Course card hover effect */
+  .course-card {
+    @apply relative overflow-hidden rounded-xl transition-all duration-500;
+    transform-style: preserve-3d;
+  }
+
+  .course-card:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+  }
+
+  .course-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      hsl(222 47% 6% / 0.3) 60%,
+      hsl(222 47% 6% / 0.95) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Shimmer animation */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--glass-highlight)),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      left: 100%;
+    }
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stagger children */
+  .stagger-children > * {
+    animation: fadeIn 0.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-accent);
+  }
+
+  /* Hero section specific */
+  .hero-image {
+    @apply absolute inset-0 w-full h-full object-cover;
+    filter: brightness(0.7) saturate(1.1);
+  }
+
+  .hero-overlay {
+    @apply absolute inset-0;
+    background: linear-gradient(
+      135deg,
+      hsl(222 47% 6% / 0.85) 0%,
+      hsl(222 47% 6% / 0.4) 50%,
+      hsl(222 47% 6% / 0.2) 100%
+    );
+  }
+
+  /* Success indicator glow */
+  .success-glow {
+    @apply relative;
+    box-shadow: 0 0 20px -5px hsl(var(--success) / 0.6);
+  }
+
+  /* Input focus glow */
+  .input-glow:focus-within {
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.3);
+  }
+}
+
+@layer utilities {
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .fade-in,
+    .stagger-children > *,
+    .shimmer::after {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .course-card:hover {
+      transform: none;
+    }
+  }
+
+  /* Aspect ratios */
+  .aspect-cinema {
+    aspect-ratio: 21/9;
+  }
+
+  .aspect-card {
+    aspect-ratio: 16/9;
+  }
+
+  /* Z-index layers */
+  .z-base { z-index: 1; }
+  .z-overlay { z-index: 10; }
+  .z-modal { z-index: 50; }
+  .z-toast { z-index: 100; }
+}
