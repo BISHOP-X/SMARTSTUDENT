@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Filter, Plus, BookOpen, Users, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
+import CourseCreationForm, { CourseFormData } from "@/components/CourseCreationForm";
 
 // Import course images
 import courseBiology from "@/assets/course-biology.jpg";
@@ -24,9 +26,21 @@ interface CoursesPageProps {
 }
 
 const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
+  const navigate = useNavigate();
   const [activeTab] = useState("courses");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleCreateCourse = (courseData: CourseFormData) => {
+    console.log("Creating course:", courseData);
+    // TODO: API call to create course
+    // After successful creation, refresh course list
+  };
+
+  const handleCourseClick = (courseId: number) => {
+    navigate(`/courses/${courseId}`);
+  };
 
   // Mock data - will be replaced with API calls
   const courses = [
@@ -113,7 +127,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
                 </p>
               </div>
               {userRole === "lecturer" && (
-                <Button variant="hero" size="lg">
+                <Button variant="hero" size="lg" onClick={() => setIsCreateModalOpen(true)}>
                   <Plus className="w-5 h-5" />
                   Create Course
                 </Button>
@@ -170,6 +184,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
                 <div
                   key={course.id}
                   className="course-card group cursor-pointer"
+                  onClick={() => handleCourseClick(course.id)}
                 >
                   {/* Course Image */}
                   <div className="aspect-card w-full">
@@ -248,6 +263,13 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
           )}
         </div>
       </main>
+
+      {/* Course Creation Modal */}
+      <CourseCreationForm
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateCourse}
+      />
     </div>
   );
 };

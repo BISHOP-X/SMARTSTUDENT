@@ -1,17 +1,22 @@
 import { BookOpen, Clock, TrendingUp, Users } from "lucide-react";
 
 interface CourseCardProps {
+  courseId: number;
   title: string;
   instructor: string;
   progress: number;
   nextClass: string;
   image: string;
   students?: number;
+  onClick?: (courseId: number) => void;
 }
 
-const CourseCard = ({ title, instructor, progress, nextClass, image, students = 24 }: CourseCardProps) => {
+const CourseCard = ({ courseId, title, instructor, progress, nextClass, image, students = 24, onClick }: CourseCardProps) => {
   return (
-    <div className="course-card group cursor-pointer">
+    <div 
+      className="course-card group cursor-pointer" 
+      onClick={() => onClick?.(courseId)}
+    >
       {/* Background Image */}
       <div className="aspect-card w-full">
         <img

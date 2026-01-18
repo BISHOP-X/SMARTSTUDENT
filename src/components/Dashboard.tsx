@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import TimeGreeting from "@/components/TimeGreeting";
 import CourseCard from "@/components/CourseCard";
 import CalendarWidget from "@/components/CalendarWidget";
@@ -14,6 +15,7 @@ import courseMath from "@/assets/course-math.jpg";
 import courseLiterature from "@/assets/course-literature.jpg";
 
 interface DashboardProps {
+  userRole: "student" | "lecturer";
   onLogout: () => void;
 }
 
@@ -56,8 +58,13 @@ const courses = [
   },
 ];
 
-const Dashboard = ({ onLogout }: DashboardProps) => {
+const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const navigate = useNavigate();
+
+  const handleCourseClick = (courseId: number) => {
+    navigate(`/courses/${courseId}`);
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -96,7 +103,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
         {/* Dashboard Content */}
         <div className="p-6 space-y-8">
           {/* Time-based Greeting */}
-          <TimeGreeting userName="Alex" />
+          <TimeGreeting userName={userRole === "student" ? "Alex" : "Dr. Morgan"} />
 
           {/* Main Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -113,12 +120,14 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 {courses.map((course) => (
                   <CourseCard
                     key={course.id}
+                    courseId={course.id}
                     title={course.title}
                     instructor={course.instructor}
                     progress={course.progress}
                     nextClass={course.nextClass}
                     image={course.image}
                     students={course.students}
+                    onClick={handleCourseClick}
                   />
                 ))}
               </div>

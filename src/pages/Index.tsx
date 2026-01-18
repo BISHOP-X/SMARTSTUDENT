@@ -1,26 +1,23 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import AuthForm from "@/components/AuthForm";
 import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<"student" | "lecturer" | null>(null);
+  const { isAuthenticated, userRole, login, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = (role: "student" | "lecturer") => {
-    setIsAuthenticated(true);
-    setUserRole(role);
+    login(role);
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserRole(null);
+    logout();
     navigate("/");
   };
 
   if (isAuthenticated && userRole) {
-    return <Dashboard onLogout={handleLogout} />;
+    return <Dashboard userRole={userRole} onLogout={handleLogout} />;
   }
 
   return <AuthForm onLogin={handleLogin} />;
