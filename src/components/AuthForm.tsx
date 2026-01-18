@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Sparkles, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Sparkles, ArrowRight, GraduationCap, BookOpen } from "lucide-react";
 import heroImage from "@/assets/hero-auth.jpg";
 
 interface AuthFormProps {
-  onLogin: () => void;
+  onLogin: (role: "student" | "lecturer") => void;
 }
 
 const AuthForm = ({ onLogin }: AuthFormProps) => {
@@ -15,10 +15,11 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [role, setRole] = useState<"student" | "lecturer">("student");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    onLogin(role);
   };
 
   return (
@@ -58,30 +59,88 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
         </div>
 
         {/* Glass Login Card */}
-        <div className="glass-card w-full max-w-md p-8 md:p-10 animate-fade-in">
+        <div className="glass-card w-full max-w-md p-6 md:p-8 animate-fade-in">
           {/* Mobile Brand */}
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-6">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-info flex items-center justify-center shadow-glow">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-2xl font-bold text-foreground">SmartStudent</span>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-2">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-1">
               {isSignUp ? "Create your account" : "Welcome back"}
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {isSignUp 
                 ? "Start your learning journey today" 
                 : "Sign in to continue to your dashboard"}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Role Toggle */}
+          <div className="mb-5">
+            <Label className="text-sm text-foreground mb-2 block">I am a...</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setRole("student")}
+                className={`
+                  relative p-3 rounded-lg border-2 transition-all duration-200 text-left
+                  ${
+                    role === "student"
+                      ? "border-primary bg-primary/10 shadow-md"
+                      : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                  }
+                `}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`
+                    w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+                    ${role === "student" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}
+                  `}>
+                    <GraduationCap className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm text-foreground">Student</div>
+                    <div className="text-xs text-muted-foreground truncate">Learn & submit</div>
+                  </div>
+                </div>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setRole("lecturer")}
+                className={`
+                  relative p-3 rounded-lg border-2 transition-all duration-200 text-left
+                  ${
+                    role === "lecturer"
+                      ? "border-primary bg-primary/10 shadow-md"
+                      : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                  }
+                `}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`
+                    w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+                    ${role === "lecturer" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}
+                  `}>
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm text-foreground">Lecturer</div>
+                    <div className="text-xs text-muted-foreground truncate">Teach & manage</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
               <div className="space-y-2 animate-fade-in">
-                <Label htmlFor="name" className="text-foreground">Full Name</Label>
+                <Label htmlFor="name" className="text-foreground text-sm">Full Name</Label>
                 <Input
                   id="name"
                   type="text"
@@ -89,12 +148,13 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  className="h-10"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground">Email</Label>
+              <Label htmlFor="email" className="text-foreground text-sm">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -102,11 +162,12 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-10"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-foreground">Password</Label>
+              <Label htmlFor="password" className="text-foreground text-sm">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -115,32 +176,33 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {!isSignUp && (
               <div className="flex justify-end">
-                <button type="button" className="text-sm text-primary hover:underline">
+                <button type="button" className="text-xs text-primary hover:underline">
                   Forgot password?
                 </button>
               </div>
             )}
 
-            <Button type="submit" variant="hero" size="lg" className="w-full group">
+            <Button type="submit" variant="hero" size="default" className="w-full group mt-6">
               {isSignUp ? "Create Account" : "Sign In"}
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-border">
+          <div className="mt-6 pt-4 border-t border-border">
             <p className="text-center text-muted-foreground">
               {isSignUp ? "Already have an account?" : "Don't have an account?"}
               <button

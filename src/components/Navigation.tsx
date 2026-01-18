@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   Home, 
   BookOpen, 
@@ -22,15 +23,24 @@ interface NavigationProps {
 }
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home },
-  { id: "courses", label: "My Courses", icon: BookOpen },
-  { id: "calendar", label: "Calendar", icon: Calendar },
-  { id: "goals", label: "Goals", icon: Target },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
+  { id: "courses", label: "My Courses", icon: BookOpen, path: "/courses" },
+  { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
+  { id: "goals", label: "Goals", icon: Target, path: "/goals" },
+  { id: "analytics", label: "Analytics", icon: BarChart3, path: "/analytics" },
 ];
 
 const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleNavClick = (item: typeof navItems[0]) => {
+    onTabChange(item.id);
+    if (item.path) {
+      navigate(item.path);
+    }
+  };
 
   return (
     <aside 
@@ -63,12 +73,12 @@ const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
       <nav className="flex-1 px-3 py-6 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id;
+          const isActive = location.pathname === item.path || activeTab === item.id;
           
           return (
             <button
               key={item.id}
-              onClick={() => onTabChange(item.id)}
+              onClick={() => handleNavClick(item)}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200",
                 isActive 
