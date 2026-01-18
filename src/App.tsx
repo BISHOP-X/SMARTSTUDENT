@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
+import AssignmentDetail from "./pages/AssignmentDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <CourseDetail userRole={role} onLogout={logout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/courses/:courseId/assignments/:assignmentId"
+        element={
+          <ProtectedRoute>
+            <AssignmentDetail userRole={role} onLogout={logout} />
           </ProtectedRoute>
         }
       />

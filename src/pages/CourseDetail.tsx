@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Navigation from "@/components/Navigation";
 import MaterialUpload, { UploadedMaterial } from "@/components/MaterialUpload";
+import AssignmentCreationForm, { AssignmentFormData } from "@/components/AssignmentCreationForm";
 
 // Import course images
 import courseBiology from "@/assets/course-biology.jpg";
@@ -101,11 +102,18 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("courses");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
 
   const handleMaterialUpload = (uploadedMaterials: UploadedMaterial[]) => {
     console.log("Uploaded materials:", uploadedMaterials);
     // TODO: API call to save materials
     // After successful upload, refresh materials list
+  };
+
+  const handleAssignmentCreate = (assignmentData: AssignmentFormData) => {
+    console.log("Creating assignment:", assignmentData);
+    // TODO: API call to create assignment
+    // After successful creation, refresh assignments list
   };
 
   // Get course from mock database
@@ -432,7 +440,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-foreground">Assignments</h2>
                   {userRole === "lecturer" && (
-                    <Button variant="hero">
+                    <Button variant="hero" onClick={() => setIsAssignmentModalOpen(true)}>
                       <Plus className="w-4 h-4" />
                       Create Assignment
                     </Button>
@@ -450,6 +458,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
                       <div
                         key={assignment.id}
                         className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-secondary/50 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/courses/${id}/assignments/${assignment.id}`)}
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
@@ -535,6 +544,14 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
         onClose={() => setIsUploadModalOpen(false)}
         onUpload={handleMaterialUpload}
         courseId={id}
+      />
+
+      {/* Assignment Creation Modal */}
+      <AssignmentCreationForm
+        open={isAssignmentModalOpen}
+        onClose={() => setIsAssignmentModalOpen(false)}
+        onSubmit={handleAssignmentCreate}
+        courseId={id || ""}
       />
     </div>
   );
