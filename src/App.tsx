@@ -10,6 +10,9 @@ import CourseDetail from "./pages/CourseDetail";
 import AssignmentDetail from "./pages/AssignmentDetail";
 import MySubmissions from "./pages/MySubmissions";
 import GradingQueue from "./pages/GradingQueue";
+import CourseAnalytics from "./pages/CourseAnalytics";
+import Calendar from "./pages/Calendar";
+import Goals from "./pages/Goals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +71,30 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <GradingQueue userRole={role} onLogout={logout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/courses/:id/analytics"
+        element={
+          <ProtectedRoute>
+            <CourseAnalytics />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <Calendar />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/goals"
+        element={
+          <ProtectedRoute>
+            <Goals />
           </ProtectedRoute>
         }
       />

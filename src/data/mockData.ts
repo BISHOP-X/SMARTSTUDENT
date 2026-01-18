@@ -371,3 +371,372 @@ export const getTimeAgo = (dateString: string): string => {
   
   return formatDate(dateString);
 };
+
+// ==================== ANALYTICS DATA ====================
+
+export interface CourseAnalytics {
+  courseId: number;
+  courseName: string;
+  courseCode: string;
+  totalStudents: number;
+  averageGrade: number;
+  submissionRate: number;
+  gradeDistribution: {
+    range: string;
+    count: number;
+    percentage: number;
+  }[];
+  assignmentPerformance: {
+    assignmentTitle: string;
+    averageScore: number;
+    submissionRate: number;
+    dueDate: string;
+  }[];
+  topPerformers: {
+    studentName: string;
+    averageGrade: number;
+    assignmentsCompleted: number;
+  }[];
+  strugglingStudents: {
+    studentName: string;
+    averageGrade: number;
+    assignmentsCompleted: number;
+    missedDeadlines: number;
+  }[];
+  performanceOverTime: {
+    date: string;
+    averageScore: number;
+    submissionCount: number;
+  }[];
+}
+
+export const mockCourseAnalytics: Record<number, CourseAnalytics> = {
+  1: {
+    courseId: 1,
+    courseName: "Molecular Biology",
+    courseCode: "BIO301",
+    totalStudents: 32,
+    averageGrade: 86.5,
+    submissionRate: 94.3,
+    gradeDistribution: [
+      { range: "90-100", count: 12, percentage: 37.5 },
+      { range: "80-89", count: 14, percentage: 43.75 },
+      { range: "70-79", count: 4, percentage: 12.5 },
+      { range: "60-69", count: 2, percentage: 6.25 },
+      { range: "0-59", count: 0, percentage: 0 },
+    ],
+    assignmentPerformance: [
+      {
+        assignmentTitle: "DNA Replication Analysis",
+        averageScore: 88.5,
+        submissionRate: 93.75,
+        dueDate: "2026-01-20",
+      },
+      {
+        assignmentTitle: "Protein Synthesis Essay",
+        averageScore: 85.2,
+        submissionRate: 96.88,
+        dueDate: "2026-01-25",
+      },
+      {
+        assignmentTitle: "Cell Division Lab Report",
+        averageScore: 87.8,
+        submissionRate: 100,
+        dueDate: "2026-01-10",
+      },
+      {
+        assignmentTitle: "Enzyme Kinetics Problem Set",
+        averageScore: 84.3,
+        submissionRate: 90.63,
+        dueDate: "2026-01-08",
+      },
+    ],
+    topPerformers: [
+      { studentName: "Emma Thompson", averageGrade: 96.5, assignmentsCompleted: 4 },
+      { studentName: "Michael Chen", averageGrade: 94.2, assignmentsCompleted: 4 },
+      { studentName: "Sarah Johnson", averageGrade: 92.8, assignmentsCompleted: 4 },
+    ],
+    strugglingStudents: [
+      { studentName: "James Rodriguez", averageGrade: 65.3, assignmentsCompleted: 3, missedDeadlines: 1 },
+      { studentName: "David Lee", averageGrade: 68.9, assignmentsCompleted: 3, missedDeadlines: 1 },
+    ],
+    performanceOverTime: [
+      { date: "2026-01-08", averageScore: 84.3, submissionCount: 29 },
+      { date: "2026-01-10", averageScore: 87.8, submissionCount: 32 },
+      { date: "2026-01-12", averageScore: 86.1, submissionCount: 31 },
+      { date: "2026-01-15", averageScore: 88.5, submissionCount: 30 },
+    ],
+  },
+  2: {
+    courseId: 2,
+    courseName: "Data Structures & Algorithms",
+    courseCode: "CS202",
+    totalStudents: 28,
+    averageGrade: 82.3,
+    submissionRate: 89.7,
+    gradeDistribution: [
+      { range: "90-100", count: 8, percentage: 28.57 },
+      { range: "80-89", count: 12, percentage: 42.86 },
+      { range: "70-79", count: 6, percentage: 21.43 },
+      { range: "60-69", count: 2, percentage: 7.14 },
+      { range: "0-59", count: 0, percentage: 0 },
+    ],
+    assignmentPerformance: [
+      {
+        assignmentTitle: "Binary Search Tree Implementation",
+        averageScore: 81.5,
+        submissionRate: 85.71,
+        dueDate: "2026-01-19",
+      },
+      {
+        assignmentTitle: "Graph Algorithms Quiz",
+        averageScore: 84.8,
+        submissionRate: 92.86,
+        dueDate: "2026-01-15",
+      },
+      {
+        assignmentTitle: "Dynamic Programming Problems",
+        averageScore: 79.2,
+        submissionRate: 89.29,
+        dueDate: "2026-01-05",
+      },
+      {
+        assignmentTitle: "Sorting Algorithms Analysis",
+        averageScore: 83.6,
+        submissionRate: 96.43,
+        dueDate: "2026-01-02",
+      },
+    ],
+    topPerformers: [
+      { studentName: "Alex Morgan", averageGrade: 93.5, assignmentsCompleted: 4 },
+      { studentName: "Sophia Chen", averageGrade: 91.3, assignmentsCompleted: 4 },
+      { studentName: "Daniel Kim", averageGrade: 89.7, assignmentsCompleted: 4 },
+    ],
+    strugglingStudents: [
+      { studentName: "Jessica Brown", averageGrade: 67.2, assignmentsCompleted: 3, missedDeadlines: 1 },
+      { studentName: "Ryan Martinez", averageGrade: 69.8, assignmentsCompleted: 3, missedDeadlines: 1 },
+    ],
+    performanceOverTime: [
+      { date: "2026-01-02", averageScore: 83.6, submissionCount: 27 },
+      { date: "2026-01-05", averageScore: 79.2, submissionCount: 25 },
+      { date: "2026-01-15", averageScore: 84.8, submissionCount: 26 },
+      { date: "2026-01-19", averageScore: 81.5, submissionCount: 24 },
+    ],
+  },
+  3: {
+    courseId: 3,
+    courseName: "Calculus III",
+    courseCode: "MATH303",
+    totalStudents: 35,
+    averageGrade: 78.9,
+    submissionRate: 91.4,
+    gradeDistribution: [
+      { range: "90-100", count: 6, percentage: 17.14 },
+      { range: "80-89", count: 15, percentage: 42.86 },
+      { range: "70-79", count: 10, percentage: 28.57 },
+      { range: "60-69", count: 3, percentage: 8.57 },
+      { range: "0-59", count: 1, percentage: 2.86 },
+    ],
+    assignmentPerformance: [
+      {
+        assignmentTitle: "Multivariable Integration Problem Set",
+        averageScore: 76.5,
+        submissionRate: 88.57,
+        dueDate: "2026-01-22",
+      },
+      {
+        assignmentTitle: "Partial Derivatives Quiz",
+        averageScore: 82.3,
+        submissionRate: 94.29,
+        dueDate: "2026-01-12",
+      },
+      {
+        assignmentTitle: "Vector Fields Assignment",
+        averageScore: 77.8,
+        submissionRate: 91.43,
+        dueDate: "2026-01-06",
+      },
+    ],
+    topPerformers: [
+      { studentName: "Kevin Zhang", averageGrade: 96.2, assignmentsCompleted: 3 },
+      { studentName: "Lisa Anderson", averageGrade: 94.5, assignmentsCompleted: 3 },
+      { studentName: "Alex Morgan", averageGrade: 92.0, assignmentsCompleted: 3 },
+    ],
+    strugglingStudents: [
+      { studentName: "Tom Wilson", averageGrade: 58.3, assignmentsCompleted: 2, missedDeadlines: 1 },
+      { studentName: "Rachel Green", averageGrade: 64.7, assignmentsCompleted: 3, missedDeadlines: 0 },
+    ],
+    performanceOverTime: [
+      { date: "2026-01-06", averageScore: 77.8, submissionCount: 32 },
+      { date: "2026-01-12", averageScore: 82.3, submissionCount: 33 },
+      { date: "2026-01-22", averageScore: 76.5, submissionCount: 31 },
+    ],
+  },
+};
+
+// ==================== CALENDAR & GOALS DATA ====================
+
+export interface PersonalGoal {
+  id: string;
+  userId: string;
+  title: string;
+  description?: string;
+  eventDate: string;
+  status: "todo" | "done";
+  category: "study" | "personal" | "health" | "career" | "other";
+  createdAt: string;
+}
+
+export const mockPersonalGoals: PersonalGoal[] = [
+  {
+    id: "pg1",
+    userId: "student1",
+    title: "Complete Data Structures Study Guide",
+    description: "Finish comprehensive study guide covering all tree structures and graph algorithms",
+    eventDate: "2026-01-21T14:00:00",
+    status: "todo",
+    category: "study",
+    createdAt: "2026-01-15T10:00:00",
+  },
+  {
+    id: "pg2",
+    userId: "student1",
+    title: "Gym Session",
+    description: "Leg day workout - squats, lunges, leg press",
+    eventDate: "2026-01-19T18:00:00",
+    status: "todo",
+    category: "health",
+    createdAt: "2026-01-14T08:30:00",
+  },
+  {
+    id: "pg3",
+    userId: "student1",
+    title: "Review Calculus Notes",
+    description: "Go over partial derivatives and integration techniques",
+    eventDate: "2026-01-20T16:00:00",
+    status: "done",
+    category: "study",
+    createdAt: "2026-01-13T12:00:00",
+  },
+  {
+    id: "pg4",
+    userId: "student1",
+    title: "Coffee with Study Group",
+    description: "Meet at campus cafe to discuss Bio project",
+    eventDate: "2026-01-22T15:00:00",
+    status: "todo",
+    category: "personal",
+    createdAt: "2026-01-16T14:20:00",
+  },
+  {
+    id: "pg5",
+    userId: "student1",
+    title: "Practice Coding Problems",
+    description: "LeetCode medium difficulty - focus on dynamic programming",
+    eventDate: "2026-01-23T20:00:00",
+    status: "todo",
+    category: "study",
+    createdAt: "2026-01-17T11:15:00",
+  },
+  {
+    id: "pg6",
+    userId: "student1",
+    title: "Career Fair Preparation",
+    description: "Update resume and prepare elevator pitch",
+    eventDate: "2026-01-24T10:00:00",
+    status: "todo",
+    category: "career",
+    createdAt: "2026-01-16T09:00:00",
+  },
+  {
+    id: "pg7",
+    userId: "student1",
+    title: "Morning Run",
+    description: "5K run around campus",
+    eventDate: "2026-01-25T07:00:00",
+    status: "todo",
+    category: "health",
+    createdAt: "2026-01-17T20:00:00",
+  },
+  {
+    id: "pg8",
+    userId: "student1",
+    title: "Read Literature Chapter",
+    description: "Finish chapters 5-7 for next class discussion",
+    eventDate: "2026-01-18T19:00:00",
+    status: "done",
+    category: "study",
+    createdAt: "2026-01-12T15:30:00",
+  },
+];
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  type: "assignment" | "goal" | "exam" | "class";
+  courseId?: number;
+  courseName?: string;
+  status?: string;
+  category?: string;
+}
+
+// Helper function to generate calendar events (combines assignments + goals)
+export const getCalendarEvents = (userRole: "student" | "lecturer"): CalendarEvent[] => {
+  const events: CalendarEvent[] = [];
+
+  // Add assignments as events
+  if (userRole === "student") {
+    mockAssignments
+      .filter(a => a.status === "upcoming" || a.status === "overdue")
+      .forEach(assignment => {
+        events.push({
+          id: `assignment-${assignment.id}`,
+          title: assignment.title,
+          description: assignment.description,
+          date: assignment.dueDate,
+          type: "assignment",
+          courseId: assignment.courseId,
+          courseName: assignment.courseName,
+          status: assignment.status,
+        });
+      });
+
+    // Add personal goals as events
+    mockPersonalGoals.forEach(goal => {
+      events.push({
+        id: `goal-${goal.id}`,
+        title: goal.title,
+        description: goal.description,
+        date: goal.eventDate,
+        type: "goal",
+        status: goal.status,
+        category: goal.category,
+      });
+    });
+  }
+
+  return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+};
+
+// Helper to get events for a specific date
+export const getEventsForDate = (date: Date, userRole: "student" | "lecturer"): CalendarEvent[] => {
+  const events = getCalendarEvents(userRole);
+  const targetDate = date.toISOString().split('T')[0];
+  
+  return events.filter(event => {
+    const eventDate = new Date(event.date).toISOString().split('T')[0];
+    return eventDate === targetDate;
+  });
+};
+
+// Helper to get events for a date range
+export const getEventsForRange = (startDate: Date, endDate: Date, userRole: "student" | "lecturer"): CalendarEvent[] => {
+  const events = getCalendarEvents(userRole);
+  
+  return events.filter(event => {
+    const eventDate = new Date(event.date);
+    return eventDate >= startDate && eventDate <= endDate;
+  });
+};
