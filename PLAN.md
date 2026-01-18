@@ -2,7 +2,7 @@
 
 ## Current Status Overview
 
-### ✅ COMPLETED (7 items)
+### ✅ COMPLETED (14 items)
 
 #### 1. Authentication & Role Selection
 - **Files:** `AuthForm.tsx`, `AuthContext.tsx`
@@ -81,113 +81,130 @@
   - Remove individual files
   - Integrated in CourseDetail page
 
----
+#### 8. Assignment Creation Form
+- **Files:** `AssignmentCreationForm.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Modal dialog with comprehensive form
+  - Fields: title, description, due date, max score, grading rubric
+  - Allow file upload toggle (Switch component)
+  - Real-time validation (future dates, min 20 chars description, min 50 chars rubric)
+  - Character counters for description and rubric
+  - Info alert explaining AI grading context
+  - Integrated into CourseDetail Assignments tab (lecturer only)
+  - "Create Assignment" button opens modal
 
-## 🔲 REMAINING TASKS (17 items)
-
-### Priority 1: Core Academic Features
-
-#### Task 8: Assignment Creation Form
-- **Location:** Create `src/components/AssignmentCreationForm.tsx`
-- **Trigger:** "Add Assignment" button in CourseDetail page
-- **Fields Required:**
-  - Title (Input, required)
-  - Description/Instructions (Textarea, required) 
-  - Due Date (DatePicker component)
-  - Max Score (Number input, default 100)
-  - Grading Rubric/Context (Textarea - this is the AI grading criteria)
-  - Allow File Upload toggle
-- **Validation:**
-  - Title required
-  - Due date must be in future
-  - Max score > 0
-- **Integration Points:**
-  - Add "Add Assignment" button to CourseDetail Assignments tab (lecturer only)
-  - Modal opens on click
-  - onSubmit logs data (ready for API)
-
-#### Task 9: Assignment Detail / Submission Page (Student View)
-- **Location:** Create `src/pages/AssignmentDetail.tsx`
-- **Route:** `/courses/:courseId/assignments/:assignmentId`
-- **Student View Contains:**
-  - Assignment title, description, due date, max score
-  - Submission form:
-    - Text editor (Textarea for answer)
-    - OR file upload option
-    - Submit button
-  - Past submission (if exists):
-    - Submitted content preview
+#### 9. Assignment Detail / Submission Page
+- **Files:** `AssignmentDetail.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Route: `/courses/:courseId/assignments/:assignmentId`
+  - Dual view based on role
+  - **Student View:**
+    - Assignment instructions display
+    - Due date with badges (overdue/due soon)
+    - Submission form (textarea for text answer)
+    - File upload option (if enabled)
+    - View past submission when exists
     - Status badge (pending/graded)
-    - Score display (if graded)
-    - AI feedback display (if graded)
-- **Lecturer View Contains:**
-  - Assignment details (same as student)
-  - List of all submissions
-  - Each submission shows: student name, submitted time, status
-  - Click submission → view student's work + grade
+    - Score display with percentage
+    - AI feedback panel in styled box
+  - **Lecturer View:**
+    - Assignment details and grading rubric
+    - List of all student submissions (4 mock students)
+    - Each submission shows: student name, submitted time, status, score
+    - Click submission opens grading panel
+    - Status badges and progress indicators
+  - Back navigation to course detail
+  - Assignments in CourseDetail now clickable
 
-#### Task 10: Grading Interface (Lecturer)
-- **Location:** Create `src/components/GradingPanel.tsx`
-- **Usage:** Shown when lecturer clicks a submission in AssignmentDetail
-- **Contains:**
-  - Student's submitted content (text or file preview)
-  - AI Score display (read-only initially)
-  - AI Feedback display (read-only initially)
-  - Override section:
-    - Manual score input
-    - Manual feedback textarea
-    - "Save Override" button
-  - Status: pending → graded indicator
-- **Flow:**
-  1. AI grade shown first
-  2. Lecturer can accept or override
-  3. Save persists changes
+#### 10. Grading Panel
+- **Files:** `GradingPanel.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Side sheet (Sheet component, 600px wide)
+  - Student's submitted answer display
+  - AI assessment section with gradient background
+  - Score display (number + percentage)
+  - AI feedback in styled box
+  - Manual override section:
+    - Edit score input
+    - Edit feedback textarea
+    - Save/Cancel buttons
+    - Loading states during save
+  - Shows which grade is active (AI vs manual)
+  - Mock data for 4 students with varied scores (22, 78, 85, 92)
+  - Integrated into AssignmentDetail (lecturer view)
+
+#### 11. Student Dashboard Enhancements
+- **Files:** `Dashboard.tsx` (updated)
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Quick stats cards (courses enrolled, pending assignments, average grade)
+  - Upcoming deadlines section (next 5 assignments)
+  - Each deadline shows: title, course, days until due, status badges (overdue/due soon)
+  - Clickable to navigate to assignment detail
+  - Recent grades section (last 3 graded)
+  - Each grade shows: assignment, course, score with color coding, AI/manual badge
+  - "View All" links to submissions page
+  - Empty states for no deadlines/grades
+  - Conditional rendering based on userRole === "student"
+
+#### 12. Submission History Page
+- **Files:** `MySubmissions.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Route: `/submissions`
+  - Statistics cards (total, graded, pending, average grade)
+  - Search bar (filters by assignment/course name)
+  - Course filter dropdown (all courses)
+  - Status filter (all/graded/pending)
+  - Sortable table (by submitted date, score, course)
+  - Each row shows: assignment, course, submitted time, status badge, score with percentage
+  - Color-coded scores (excellent/good/fair/poor)
+  - AI/Manual graded badges
+  - Click row to view assignment detail
+  - Empty states for no submissions or filtered results
+  - Results count display
+
+#### 13. Lecturer Dashboard Enhancements
+- **Files:** `Dashboard.tsx` (updated)
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Quick stats cards (total students, pending grades, courses teaching)
+  - "Courses I Teach" section with course cards
+  - Each course shows: title, code, students count, average grade, pending submissions badge
+  - "Grade Now" buttons on courses with pending work
+  - Recent submissions section (5 most recent pending)
+  - Each submission shows: student, assignment, course, time ago, "Grade" button
+  - Oldest first sorting (most urgent at top)
+  - "View Queue" link to grading page
+  - Empty state when all caught up
+  - Conditional rendering based on userRole === "lecturer"
+
+#### 14. Grading Queue Page
+- **Files:** `GradingQueue.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Route: `/grading`
+  - Statistics cards (total pending, unique students, unique assignments, oldest waiting days)
+  - Search bar (filters by student/assignment/course)
+  - Course filter dropdown
+  - Sortable table (by submitted date, student name, course)
+  - Each row shows: student avatar/name, assignment, course badge, time ago, days waiting, max score
+  - Urgent badges for submissions waiting 3+ days
+  - "View" and "Grade Now" buttons
+  - Opens GradingPanel on "Grade Now" click
+  - Integrated GradingPanel component
+  - Empty state when all caught up (success message)
+  - Results count display
+  - Only shows pending submissions (status filtering)
 
 ---
 
-### Priority 2: Student Experience
+## 🔲 REMAINING TASKS (10 items)
 
-#### Task 11: Student Dashboard Enhancements
-- **Location:** Update `Dashboard.tsx`
-- **Add:**
-  - Upcoming deadlines section (next 5 assignments due)
-  - Recent grades section (last 3 graded submissions)
-  - "View All" links for each section
-  - Quick stats: courses enrolled, assignments pending, average grade
-
-#### Task 12: Submission History Page
-- **Location:** Create `src/pages/MySubmissions.tsx`
-- **Route:** `/submissions`
-- **Contains:**
-  - List of all student's submissions
-  - Filter by course, status (pending/graded)
-  - Each row: assignment name, course, submitted date, status, score
-  - Click → navigate to assignment detail
-
----
-
-### Priority 3: Lecturer Experience
-
-#### Task 13: Lecturer Dashboard Enhancements
-- **Location:** Update `Dashboard.tsx` (check userRole)
-- **Add (when userRole === "lecturer"):**
-  - "Courses I Teach" section
-  - Pending submissions count per course
-  - "Grade Now" quick action buttons
-  - Recent submissions needing grading
-  - Quick stats: total students, pending grades, courses count
-
-#### Task 14: Grading Queue Page
-- **Location:** Create `src/pages/GradingQueue.tsx`
-- **Route:** `/grading`
-- **Contains:**
-  - List of all pending submissions across all lecturer's courses
-  - Filter by course
-  - Sort by submission date (oldest first)
-  - Each row: student, assignment, course, submitted time
-  - Click → open grading panel
-
-#### Task 15: Course Analytics Page
+### Priority 4: Organization Features
 - **Location:** Create `src/pages/CourseAnalytics.tsx`
 - **Route:** `/courses/:id/analytics`
 - **Contains:**
@@ -306,22 +323,24 @@ src/
 │   ├── AuthForm.tsx        # ✅ done
 │   ├── CourseCard.tsx      # ✅ done
 │   ├── CourseCreationForm.tsx  # ✅ done
-│   ├── Dashboard.tsx       # ✅ done (needs enhancements)
+│   ├── Dashboard.tsx       # ✅ done (Tasks 11 & 13)
 │   ├── MaterialUpload.tsx  # ✅ done
-│   ├── Navigation.tsx      # ✅ done
-│   ├── AssignmentCreationForm.tsx  # 🔲 Task 8
-│   ├── GradingPanel.tsx    # 🔲 Task 10
+│   ├── Navigation.tsx      # ✅ done (updated for roles)
+│   ├── AssignmentCreationForm.tsx  # ✅ done (Task 8)
+│   ├── GradingPanel.tsx    # ✅ done (Task 10)
 │   ├── NotificationDropdown.tsx    # 🔲 Task 18
 │   └── ...
 ├── contexts/
 │   └── AuthContext.tsx     # ✅ done
+├── data/
+│   └── mockData.ts         # ✅ done (comprehensive mock data)
 ├── pages/
 │   ├── Index.tsx           # ✅ done
 │   ├── Courses.tsx         # ✅ done
 │   ├── CourseDetail.tsx    # ✅ done
-│   ├── AssignmentDetail.tsx    # 🔲 Task 9
-│   ├── MySubmissions.tsx       # 🔲 Task 12
-│   ├── GradingQueue.tsx        # 🔲 Task 14
+│   ├── AssignmentDetail.tsx    # ✅ done (Task 9)
+│   ├── MySubmissions.tsx       # ✅ done (Task 12)
+│   ├── GradingQueue.tsx        # ✅ done (Task 14)
 │   ├── CourseAnalytics.tsx     # 🔲 Task 15
 │   ├── Calendar.tsx            # 🔲 Task 16
 │   ├── Goals.tsx               # 🔲 Task 17
@@ -335,21 +354,21 @@ src/
 
 ## Implementation Order (Recommended)
 
-### Phase 1: Core Assessment Loop (Tasks 8-10)
-This is the CORE MECHANIC of the app. Build this first.
-1. Task 8: Assignment Creation Form
-2. Task 9: Assignment Detail Page
-3. Task 10: Grading Panel
+### Phase 1: Core Assessment Loop (Tasks 8-10) ✅ COMPLETE
+This is the CORE MECHANIC of the app.
+1. ✅ Task 8: Assignment Creation Form
+2. ✅ Task 9: Assignment Detail Page
+3. ✅ Task 10: Grading Panel
 
-### Phase 2: Dashboard Improvements (Tasks 11, 13)
-4. Task 11: Student Dashboard Enhancements
-5. Task 13: Lecturer Dashboard Enhancements
+### Phase 2: Dashboard Improvements (Tasks 11, 13) ✅ COMPLETE
+4. ✅ Task 11: Student Dashboard Enhancements
+5. ✅ Task 13: Lecturer Dashboard Enhancements
 
-### Phase 3: History & Queue (Tasks 12, 14)
-6. Task 12: Submission History Page
-7. Task 14: Grading Queue Page
+### Phase 3: History & Queue (Tasks 12, 14) ✅ COMPLETE
+6. ✅ Task 12: Submission History Page
+7. ✅ Task 14: Grading Queue Page
 
-### Phase 4: Organization (Tasks 16, 17)
+### Phase 4: Organization (Tasks 16, 17) ← NEXT
 8. Task 16: Calendar Page
 9. Task 17: Goals Page
 

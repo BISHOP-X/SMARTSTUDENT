@@ -10,11 +10,14 @@ import {
   Sparkles,
   ChevronLeft,
   LogOut,
-  User
+  User,
+  FileText,
+  ClipboardCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavigationProps {
   activeTab: string;
@@ -22,18 +25,30 @@ interface NavigationProps {
   onLogout: () => void;
 }
 
-const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
-  { id: "courses", label: "My Courses", icon: BookOpen, path: "/courses" },
-  { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
-  { id: "goals", label: "Goals", icon: Target, path: "/goals" },
-  { id: "analytics", label: "Analytics", icon: BarChart3, path: "/analytics" },
-];
-
 const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { userRole } = useAuth();
+
+  // Define navigation items based on user role
+  const studentNavItems = [
+    { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
+    { id: "courses", label: "My Courses", icon: BookOpen, path: "/courses" },
+    { id: "submissions", label: "My Submissions", icon: FileText, path: "/submissions" },
+    { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
+    { id: "goals", label: "Goals", icon: Target, path: "/goals" },
+  ];
+
+  const lecturerNavItems = [
+    { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
+    { id: "courses", label: "My Courses", icon: BookOpen, path: "/courses" },
+    { id: "grading", label: "Grading Queue", icon: ClipboardCheck, path: "/grading" },
+    { id: "analytics", label: "Analytics", icon: BarChart3, path: "/analytics" },
+    { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
+  ];
+
+  const navItems = userRole === "lecturer" ? lecturerNavItems : studentNavItems;
 
   const handleNavClick = (item: typeof navItems[0]) => {
     onTabChange(item.id);
@@ -122,8 +137,12 @@ const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
           </Avatar>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">Alex Morgan</p>
-              <p className="text-xs text-muted-foreground truncate">Student</p>
+              <p className="text-sm font-medium text-foreground truncate">
+                {userRole === "student" ? "Alex Morgan" : "Dr. Morgan"}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {userRole === "student" ? "Student" : "Lecturer"}
+              </p>
             </div>
           )}
           {!isCollapsed && (

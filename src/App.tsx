@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
 import AssignmentDetail from "./pages/AssignmentDetail";
+import MySubmissions from "./pages/MySubmissions";
+import GradingQueue from "./pages/GradingQueue";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +52,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <AssignmentDetail userRole={role} onLogout={logout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/submissions"
+        element={
+          <ProtectedRoute>
+            <MySubmissions userRole={role} onLogout={logout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/grading"
+        element={
+          <ProtectedRoute>
+            <GradingQueue userRole={role} onLogout={logout} />
           </ProtectedRoute>
         }
       />
