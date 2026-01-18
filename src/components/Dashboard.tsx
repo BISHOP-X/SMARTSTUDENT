@@ -8,13 +8,15 @@ import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Bell, Search, Clock, TrendingUp, BookOpen, Users, AlertCircle, CheckCircle2, GraduationCap, FileText } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Plus, Bell, Search, Clock, TrendingUp, BookOpen, Users, AlertCircle, CheckCircle2, GraduationCap, FileText, Target, Zap, Award, Calendar as CalendarIcon, ArrowRight, Sparkles, BarChart3 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
   mockUpcomingDeadlines, 
   mockRecentGrades, 
   mockCoursesTaught,
   mockLecturerSubmissions,
+  mockStudentSubmissions,
   getDaysUntil,
   formatDate,
   getTimeAgo,
@@ -98,6 +100,38 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
     ? Math.round(mockRecentGrades.reduce((acc, g) => acc + (g.score / g.maxScore * 100), 0) / mockRecentGrades.length)
     : 0;
 
+  // Additional stats for enhanced dashboard
+  const totalSubmissions = mockStudentSubmissions.length;
+  const completedAssignments = mockStudentSubmissions.filter(s => s.status === "graded").length;
+  const assignmentCompletionRate = totalSubmissions > 0 
+    ? Math.round((completedAssignments / totalSubmissions) * 100) 
+    : 0;
+  
+  // Study streak (mock data - days in a row with activity)
+  const studyStreak = 7; // Mock: 7 days streak
+  
+  // Next class calculation
+  const nextClass = courses.reduce((nearest, course) => {
+    const courseTime = new Date(course.nextClass).getTime();
+    const nearestTime = new Date(nearest.nextClass).getTime();
+    return courseTime < nearestTime ? course : nearest;
+  }, courses[0]);
+
+  // Grade trend (mock data showing improvement)
+  const gradeTrend = mockRecentGrades.length >= 2 
+    ? mockRecentGrades[0].score / mockRecentGrades[0].maxScore - mockRecentGrades[mockRecentGrades.length - 1].score / mockRecentGrades[mockRecentGrades.length - 1].maxScore
+    : 0;
+  const isTrendingUp = gradeTrend > 0;
+
+  // Calculate performance by course
+  const performanceByCourse = courses.map(course => {
+    const courseGrades = mockRecentGrades.filter(g => g.courseName === course.title);
+    const avgGrade = courseGrades.length > 0
+      ? Math.round(courseGrades.reduce((acc, g) => acc + (g.score / g.maxScore * 100), 0) / courseGrades.length)
+      : 0;
+    return { courseName: course.title, avgGrade };
+  });
+
   // Calculate quick stats for lecturers
   const totalStudents = mockCoursesTaught.reduce((acc, c) => acc + c.students, 0);
   const totalPendingGrades = mockLecturerSubmissions.filter(s => s.status === "pending").length;
@@ -106,7 +140,7 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
   const renderStudentDashboard = () => (
     <>
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card className="glass-card border-0">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -125,7 +159,7 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Pending Assignments</p>
+                <p className="text-sm text-muted-foreground mb-1">Pending Tasks</p>
                 <p className="text-3xl font-bold text-foreground">{pendingAssignments}</p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
@@ -140,11 +174,167 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Average Grade</p>
-                <p className="text-3xl font-bold text-foreground">{averageGrade}%</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-3xl font-bold text-foreground">{averageGrade}%</p>
+                  {isTrendingUp ? (
+                    <TrendingUp className="w-5 h-5 text-success" />
+                  ) : (
+                    <TrendingUp className="w-5 h-5 text-muted-foreground rotate-180" />
+                  )}
+                </div>
               </div>
               <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-success" />
+                <GraduationCap className="w-6 h-6 text-success" />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card border-0 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Study Streak</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-3xl font-bold text-foreground">{studyStreak}</p>
+                  <Zap className="w-5 h-5 text-amber-500" />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">days in a row!</p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                <Award className="w-6 h-6 text-amber-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Next Class & Quick Actions Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* Next Class Countdown */}
+        <Card className="glass-card border-0 bg-gradient-to-br from-primary/5 to-info/5">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <CalendarIcon className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold text-foreground">Next Class</h3>
+                </div>
+                <h4 className="text-lg font-bold text-foreground mb-1">{nextClass.title}</h4>
+                <p className="text-sm text-muted-foreground mb-3">{nextClass.nextClass}</p>
+                <Button 
+                  variant="hero" 
+                  size="sm"
+                  onClick={() => handleCourseClick(nextClass.id)}
+                >
+                  View Course
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+              <div className="text-right">
+                <Badge variant="outline" className="border-primary/30 text-primary">
+                  Starting Soon
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card className="glass-card border-0">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Zap className="w-5 h-5 text-accent" />
+              <h3 className="font-semibold text-foreground">Quick Actions</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col gap-2 py-3"
+                onClick={() => navigate("/submissions")}
+              >
+                <FileText className="w-5 h-5 text-primary" />
+                <span className="text-xs">Submissions</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col gap-2 py-3"
+                onClick={() => navigate("/calendar")}
+              >
+                <CalendarIcon className="w-5 h-5 text-info" />
+                <span className="text-xs">Calendar</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col gap-2 py-3"
+                onClick={() => navigate("/goals")}
+              >
+                <Target className="w-5 h-5 text-success" />
+                <span className="text-xs">Goals</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto flex-col gap-2 py-3"
+                onClick={() => navigate("/courses")}
+              >
+                <BookOpen className="w-5 h-5 text-accent" />
+                <span className="text-xs">All Courses</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Assignment Completion & Performance Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* Assignment Completion Rate */}
+        <Card className="glass-card border-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-success" />
+              Assignment Completion
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold text-foreground">{assignmentCompletionRate}%</span>
+                <span className="text-sm text-muted-foreground">
+                  {completedAssignments} of {totalSubmissions} completed
+                </span>
+              </div>
+              <Progress value={assignmentCompletionRate} className="h-3" />
+              <p className="text-xs text-muted-foreground">
+                {totalSubmissions - completedAssignments > 0 
+                  ? `${totalSubmissions - completedAssignments} assignment${totalSubmissions - completedAssignments > 1 ? 's' : ''} pending grade`
+                  : "All assignments graded!"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Performance by Course */}
+        <Card className="glass-card border-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              Performance by Course
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {performanceByCourse.slice(0, 3).map((course, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground truncate flex-1">{course.courseName}</span>
+                    <span className="font-medium text-foreground ml-2">{course.avgGrade}%</span>
+                  </div>
+                  <Progress 
+                    value={course.avgGrade} 
+                    className="h-2"
+                  />
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -317,6 +507,109 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
 
         {/* Right Column - Sidebar Widgets */}
         <aside className="space-y-6">
+          {/* AI Study Insights */}
+          <Card className="glass-card border-0 bg-gradient-to-br from-primary/5 via-info/5 to-success/5">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                AI Study Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 rounded-lg bg-background/50">
+                <p className="text-sm text-foreground mb-2">
+                  <span className="font-semibold text-success">Great work!</span> Your grades have improved by 8% this week.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Keep up the momentum in Data Structures & Algorithms.
+                </p>
+              </div>
+              
+              <div className="p-3 rounded-lg bg-background/50">
+                <p className="text-sm text-foreground mb-2">
+                  <span className="font-semibold text-accent">Reminder:</span> You have 3 assignments due this week.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Start with "DNA Replication Analysis" (due in 2 days).
+                </p>
+              </div>
+
+              <div className="p-3 rounded-lg bg-background/50">
+                <p className="text-sm text-foreground mb-2">
+                  <span className="font-semibold text-info">Tip:</span> Your best study time is 10-11 AM.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Based on your submission patterns and grades.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity */}
+          <Card className="glass-card border-0">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Clock className="w-5 h-5 text-accent" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4 text-success" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">Grade Received</p>
+                    <p className="text-xs text-muted-foreground truncate">Graph Algorithms Quiz: 92%</p>
+                    <p className="text-xs text-muted-foreground">2 hours ago</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">Assignment Submitted</p>
+                    <p className="text-xs text-muted-foreground truncate">BST Implementation</p>
+                    <p className="text-xs text-muted-foreground">5 hours ago</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-info/10 flex items-center justify-center shrink-0">
+                    <BookOpen className="w-4 h-4 text-info" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">Material Uploaded</p>
+                    <p className="text-xs text-muted-foreground truncate">Lecture 12 Notes - Biology</p>
+                    <p className="text-xs text-muted-foreground">1 day ago</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                    <AlertCircle className="w-4 h-4 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">New Assignment Posted</p>
+                    <p className="text-xs text-muted-foreground truncate">Protein Synthesis Essay</p>
+                    <p className="text-xs text-muted-foreground">2 days ago</p>
+                  </div>
+                </div>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full mt-4"
+                onClick={handleViewAllSubmissions}
+              >
+                View All Activity
+              </Button>
+            </CardContent>
+          </Card>
+
           <CalendarWidget />
           <GoalTracker />
         </aside>
