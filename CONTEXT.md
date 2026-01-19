@@ -7,7 +7,7 @@
 **SmartStudent** is an AI-Augmented Learning Management System (LMS) designed to unify the currently fragmented higher-education experience. It serves as a single "operating system" for university students, combining course material access, intelligent assessment, and personal productivity tools into one cinematic, high-fidelity web interface.
 
 **Core Problems Solved:**
-1.  **Feedback Latency:** Traditional manual grading takes weeks; SmartStudent provides immediate, constructive feedback.
+1.  **Feedback Latency:** Traditional manual grading  takes weeks; SmartStudent provides immediate, constructive feedback.
 2.  **System Fragmentation:** Students currently juggle separate portals for grades, emails for announcements, and personal calendars for planning. SmartStudent unifies these.
 
 **Primary Users:**

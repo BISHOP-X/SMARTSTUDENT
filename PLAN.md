@@ -2,7 +2,7 @@
 
 ## Current Status Overview
 
-### ✅ COMPLETED (17 items)
+### ✅ COMPLETED (20 items)
 
 #### 1. Authentication & Role Selection
 - **Files:** `AuthForm.tsx`, `AuthContext.tsx`
@@ -285,47 +285,47 @@
   - Results count display showing filtered vs total
   - Full state management with useState hooks
 
----
+#### 18. Notifications System
+- **Files:** `NotificationDropdown.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Dropdown panel triggered by bell icon
+  - Notification types: new assignment, grade received, deadline reminder
+  - Mark individual as read / mark all as read
+  - Unread count badge on bell icon
+  - "View All" link and empty state
+  - Color-coded icons by notification type
+  - Time ago display for each notification
+  - Integrated into Dashboard header
 
-## 🔲 REMAINING TASKS (7 items)
-
-#### Task 18: Notifications System
-- **Location:** Create `src/components/NotificationDropdown.tsx`
-- **Trigger:** Bell icon in top bar
-- **Contains:**
-  - Dropdown panel with notification list
-  - Notification types:
-    - New assignment posted
-    - Grade received
-    - Deadline reminder (24h before)
-  - Mark as read
-  - "View All" link
-  - Badge count on bell icon
-
----
-
-### Priority 5: User Account
-
-#### Task 19: Profile Page
-- **Location:** Create `src/pages/Profile.tsx`
-- **Route:** `/profile`
-- **Contains:**
-  - Avatar upload
-  - Display name field
-  - Email (read-only)
+#### 19. Profile Page
+- **Files:** `Profile.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Route: `/profile`
+  - Avatar upload with preview and fallback initials
+  - Display name editable field
+  - Email display (read-only)
   - Role badge (Student/Lecturer)
-  - Save changes button
+  - Member since date display
+  - Save changes button with loading state
+  - Form validation for display name
 
-#### Task 20: Settings Page
-- **Location:** Create `src/pages/Settings.tsx`
-- **Route:** `/settings`
-- **Contains:**
-  - Theme toggle (dark/light)
-  - Notification preferences (toggles)
-  - Language selection (future)
-  - Account section: logout, delete account
+#### 20. Settings Page
+- **Files:** `Settings.tsx`
+- **Status:** ✅ Complete
+- **What's Done:**
+  - Route: `/settings`
+  - Appearance section with theme toggle (dark/light)
+  - Notification preferences (toggles for each type)
+  - Email, assignment, grade, deadline notification toggles
+  - Account section with logout and delete account
+  - Delete account with confirmation dialog
+  - Danger zone styling for destructive actions
 
 ---
+
+## 🔲 REMAINING TASKS (4 items)
 
 ### Priority 6: Polish & UX
 
@@ -378,8 +378,12 @@ src/
 │   ├── Navigation.tsx      # ✅ done (updated for roles)
 │   ├── AssignmentCreationForm.tsx  # ✅ done (Task 8)
 │   ├── GradingPanel.tsx    # ✅ done (Task 10)
-│   ├── NotificationDropdown.tsx    # 🔲 Task 18
-│   └── ...
+│   ├── NotificationDropdown.tsx    # ✅ done (Task 18)
+│   ├── CalendarWidget.tsx  # ✅ done
+│   ├── GoalTracker.tsx     # ✅ done
+│   ├── TimeGreeting.tsx    # ✅ done
+│   ├── NavLink.tsx         # ✅ done
+│   └── RoleSelection.tsx   # ✅ done
 ├── contexts/
 │   └── AuthContext.tsx     # ✅ done
 ├── data/
@@ -391,11 +395,11 @@ src/
 │   ├── AssignmentDetail.tsx    # ✅ done (Task 9)
 │   ├── MySubmissions.tsx       # ✅ done (Task 12)
 │   ├── GradingQueue.tsx        # ✅ done (Task 14)
-│   ├── CourseAnalytics.tsx     # 🔲 Task 15
-│   ├── Calendar.tsx            # 🔲 Task 16
-│   ├── Goals.tsx               # 🔲 Task 17
-│   ├── Profile.tsx             # 🔲 Task 19
-│   ├── Settings.tsx            # 🔲 Task 20
+│   ├── CourseAnalytics.tsx     # ✅ done (Task 15)
+│   ├── Calendar.tsx            # ✅ done (Task 16)
+│   ├── Goals.tsx               # ✅ done (Task 17)
+│   ├── Profile.tsx             # ✅ done (Task 19)
+│   ├── Settings.tsx            # ✅ done (Task 20)
 │   └── NotFound.tsx        # ✅ done
 └── ...
 ```
@@ -418,24 +422,23 @@ This is the CORE MECHANIC of the app.
 6. ✅ Task 12: Submission History Page
 7. ✅ Task 14: Grading Queue Page
 
-### Phase 4: Organization (Tasks 16, 17) ✅ COMPLETE (Tasks 15-17)
+### Phase 4: Organization (Tasks 15-17) ✅ COMPLETE
 8. ✅ Task 15: Course Analytics Page
 9. ✅ Task 16: Calendar Page
 10. ✅ Task 17: Goals Page
 
-### Phase 5: Analytics & Notifications (Tasks 15, 18)
-10. Task 15: Course Analytics
-11. Task 18: Notifications
+### Phase 5: Notifications (Task 18) ✅ COMPLETE
+11. ✅ Task 18: Notifications System
 
-### Phase 6: Account (Tasks 19, 20)
-12. Task 19: Profile Page
-13. Task 20: Settings Page
+### Phase 6: Account (Tasks 19, 20) ✅ COMPLETE
+12. ✅ Task 19: Profile Page
+13. ✅ Task 20: Settings Page
 
-### Phase 7: Polish (Tasks 21-24)
-14. Task 21: Loading States
-15. Task 22: Error Handling
-16. Task 23: Empty States
-17. Task 24: Mobile Responsiveness
+### Phase 7: Polish (Tasks 21-24) 🔲 REMAINING
+14. 🔲 Task 21: Loading States
+15. 🔲 Task 22: Error Handling
+16. 🔲 Task 23: Empty States
+17. 🔲 Task 24: Mobile Responsiveness
 
 ---
 
