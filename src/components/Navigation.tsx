@@ -64,7 +64,7 @@ const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
   return (
     <aside 
       className={cn(
-        "h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        "h-screen sticky top-0 flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 hidden md:flex",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
