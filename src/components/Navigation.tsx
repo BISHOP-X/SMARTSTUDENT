@@ -38,14 +38,18 @@ const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
     { id: "submissions", label: "My Submissions", icon: FileText, path: "/submissions" },
     { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
     { id: "goals", label: "Goals", icon: Target, path: "/goals" },
+    { id: "profile", label: "Profile", icon: User, path: "/profile" },
+    { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];
 
   const lecturerNavItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
     { id: "courses", label: "My Courses", icon: BookOpen, path: "/courses" },
     { id: "grading", label: "Grading Queue", icon: ClipboardCheck, path: "/grading" },
-    { id: "analytics", label: "Analytics", icon: BarChart3, path: "/analytics" },
+    { id: "analytics", label: "Analytics", icon: BarChart3, path: "/courses/1/analytics" },
     { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
+    { id: "profile", label: "Profile", icon: User, path: "/profile" },
+    { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];
 
   const navItems = userRole === "lecturer" ? lecturerNavItems : studentNavItems;
@@ -114,7 +118,10 @@ const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
       {/* Bottom Section */}
       <div className="p-4 border-t border-sidebar-border space-y-3">
         <button
-          onClick={() => onTabChange('settings')}
+          onClick={() => {
+            onTabChange('settings');
+            navigate('/settings');
+          }}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
             isCollapsed && "justify-center px-0"

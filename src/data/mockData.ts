@@ -740,3 +740,162 @@ export const getEventsForRange = (startDate: Date, endDate: Date, userRole: "stu
     return eventDate >= startDate && eventDate <= endDate;
   });
 };
+
+// ==================== NOTIFICATIONS DATA ====================
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: "assignment_posted" | "grade_received" | "deadline_reminder" | "material_uploaded" | "announcement";
+  title: string;
+  message: string;
+  relatedId?: string;
+  relatedType?: "assignment" | "course" | "submission" | "material";
+  isRead: boolean;
+  createdAt: string;
+}
+
+export const mockNotifications: Notification[] = [
+  {
+    id: "n1",
+    userId: "student1",
+    type: "grade_received",
+    title: "New Grade Available",
+    message: "Your submission for 'Graph Algorithms Quiz' has been graded. Score: 92/100",
+    relatedId: "a6",
+    relatedType: "assignment",
+    isRead: false,
+    createdAt: "2026-01-18T10:30:00",
+  },
+  {
+    id: "n2",
+    userId: "student1",
+    type: "assignment_posted",
+    title: "New Assignment Posted",
+    message: "Dr. Morgan posted 'DNA Replication Analysis' in Molecular Biology",
+    relatedId: "a1",
+    relatedType: "assignment",
+    isRead: false,
+    createdAt: "2026-01-18T08:15:00",
+  },
+  {
+    id: "n3",
+    userId: "student1",
+    type: "deadline_reminder",
+    title: "Assignment Due Tomorrow",
+    message: "'Binary Search Tree Implementation' is due tomorrow at 11:59 PM",
+    relatedId: "a2",
+    relatedType: "assignment",
+    isRead: false,
+    createdAt: "2026-01-18T07:00:00",
+  },
+  {
+    id: "n4",
+    userId: "student1",
+    type: "material_uploaded",
+    title: "New Course Material",
+    message: "New lecture slides uploaded for Data Structures & Algorithms",
+    relatedId: "1",
+    relatedType: "course",
+    isRead: true,
+    createdAt: "2026-01-17T16:45:00",
+  },
+  {
+    id: "n5",
+    userId: "student1",
+    type: "grade_received",
+    title: "Grade Updated",
+    message: "Your grade for 'Partial Derivatives Quiz' was updated to 50/50",
+    relatedId: "a7",
+    relatedType: "assignment",
+    isRead: true,
+    createdAt: "2026-01-17T14:20:00",
+  },
+  {
+    id: "n6",
+    userId: "student1",
+    type: "deadline_reminder",
+    title: "Assignment Due in 3 Days",
+    message: "'Multivariable Integration Problem Set' is due on January 22",
+    relatedId: "a3",
+    relatedType: "assignment",
+    isRead: true,
+    createdAt: "2026-01-17T09:00:00",
+  },
+  {
+    id: "n7",
+    userId: "student1",
+    type: "announcement",
+    title: "Course Announcement",
+    message: "Office hours this week moved to Thursday 2-4 PM",
+    relatedId: "2",
+    relatedType: "course",
+    isRead: true,
+    createdAt: "2026-01-16T11:30:00",
+  },
+  {
+    id: "n8",
+    userId: "student1",
+    type: "assignment_posted",
+    title: "New Assignment Posted",
+    message: "Prof. Smith posted 'Protein Synthesis Essay' in Molecular Biology",
+    relatedId: "a4",
+    relatedType: "assignment",
+    isRead: true,
+    createdAt: "2026-01-15T15:00:00",
+  },
+];
+
+// Lecturer notifications
+export const mockLecturerNotifications: Notification[] = [
+  {
+    id: "ln1",
+    userId: "lecturer1",
+    type: "assignment_posted",
+    title: "Submissions Pending",
+    message: "5 new submissions waiting for review in your courses",
+    isRead: false,
+    createdAt: "2026-01-18T09:45:00",
+  },
+  {
+    id: "ln2",
+    userId: "lecturer1",
+    type: "deadline_reminder",
+    title: "Assignment Deadline Approaching",
+    message: "'DNA Replication Analysis' is due in 2 days",
+    relatedId: "a1",
+    relatedType: "assignment",
+    isRead: false,
+    createdAt: "2026-01-18T07:00:00",
+  },
+  {
+    id: "ln3",
+    userId: "lecturer1",
+    type: "announcement",
+    title: "Student Reached Out",
+    message: "Emma Thompson sent you a message about Assignment 1",
+    isRead: true,
+    createdAt: "2026-01-17T13:20:00",
+  },
+];
+
+// Helper to get unread count
+export const getUnreadNotificationCount = (userRole: "student" | "lecturer"): number => {
+  const notifications = userRole === "lecturer" ? mockLecturerNotifications : mockNotifications;
+  return notifications.filter(n => !n.isRead).length;
+};
+
+// Helper to mark notification as read
+export const markNotificationAsRead = (notificationId: string, userRole: "student" | "lecturer"): void => {
+  const notifications = userRole === "lecturer" ? mockLecturerNotifications : mockNotifications;
+  const notification = notifications.find(n => n.id === notificationId);
+  if (notification) {
+    notification.isRead = true;
+  }
+};
+
+// Helper to mark all as read
+export const markAllNotificationsAsRead = (userRole: "student" | "lecturer"): void => {
+  const notifications = userRole === "lecturer" ? mockLecturerNotifications : mockNotifications;
+  notifications.forEach(n => n.isRead = true);
+};

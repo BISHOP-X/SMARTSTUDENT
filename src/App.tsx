@@ -13,6 +13,8 @@ import GradingQueue from "./pages/GradingQueue";
 import CourseAnalytics from "./pages/CourseAnalytics";
 import Calendar from "./pages/Calendar";
 import Goals from "./pages/Goals";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -95,6 +97,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Goals />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />

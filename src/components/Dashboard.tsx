@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Bell, Search, Clock, TrendingUp, BookOpen, Users, AlertCircle, CheckCircle2, GraduationCap, FileText, Target, Zap, Award, Calendar as CalendarIcon, ArrowRight, Sparkles, BarChart3 } from "lucide-react";
+import { Plus, Search, Clock, TrendingUp, BookOpen, Users, AlertCircle, CheckCircle2, GraduationCap, FileText, Target, Zap, Award, Calendar as CalendarIcon, ArrowRight, Sparkles, BarChart3 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
   mockUpcomingDeadlines, 
@@ -28,6 +28,7 @@ import courseBiology from "@/assets/course-biology.jpg";
 import courseCs from "@/assets/course-cs.jpg";
 import courseMath from "@/assets/course-math.jpg";
 import courseLiterature from "@/assets/course-literature.jpg";
+import NotificationDropdown from "@/components/NotificationDropdown";
 
 interface DashboardProps {
   userRole: "student" | "lecturer";
@@ -818,10 +819,7 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
               />
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="glass" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
-              </Button>
+              <NotificationDropdown />
               <Button variant="hero" size="sm">
                 <Plus className="w-4 h-4" />
                 New Task
