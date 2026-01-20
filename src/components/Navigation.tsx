@@ -36,6 +36,7 @@ const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
     { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
     { id: "courses", label: "My Courses", icon: BookOpen, path: "/courses" },
     { id: "submissions", label: "My Submissions", icon: FileText, path: "/submissions" },
+    { id: "ai-tools", label: "AI Study Tools", icon: Sparkles, path: "/ai-tools" },
     { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
     { id: "goals", label: "Goals", icon: Target, path: "/goals" },
     { id: "profile", label: "Profile", icon: User, path: "/profile" },

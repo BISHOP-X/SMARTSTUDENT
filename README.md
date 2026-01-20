@@ -100,7 +100,8 @@ src/
 │   ├── AssignmentDetail.tsx    # Student submit / Lecturer grade view
 │   ├── MySubmissions.tsx       # Student submission history
 │   ├── GradingQueue.tsx        # Lecturer pending queue
-│   ├── CourseAnalytics.tsx     # Charts and performance data
+│   ├── CourseAnalytics.tsx     # Charts, performance data + lecturer feedback modal
+│   ├── AIStudyTools.tsx        # AI-powered study material generation (800+ lines)
 │   ├── Calendar.tsx            # Full calendar + goals
 │   ├── Goals.tsx               # Personal goals CRUD
 │   ├── Profile.tsx             # Avatar + display name
@@ -128,12 +129,14 @@ src/
 | View enrolled courses | ✅ | ✅ (courses they teach) |
 | Submit assignments | ✅ | ❌ |
 | View grades & AI feedback | ✅ | ❌ |
+| AI Study Tools (PDF → Notes/Summaries/Questions) | ✅ | ❌ |
 | Create courses | ❌ | ✅ |
 | Upload materials | ❌ | ✅ |
 | Create assignments | ❌ | ✅ |
 | Grade submissions | ❌ | ✅ |
 | View grading queue | ❌ | ✅ |
 | View course analytics | ❌ | ✅ |
+| Send feedback to struggling students | ❌ | ✅ |
 | Manage personal goals | ✅ | ✅ |
 | View calendar | ✅ | ✅ |
 
@@ -149,6 +152,7 @@ This table shows how each CONTEXT.md requirement maps to the UI implementation:
 |---------------------|-------------------|------|
 | Sign Up/Login | Email/password form with validation | [AuthForm.tsx](src/components/AuthForm.tsx) |
 | Role Identification | Student/Lecturer toggle pre-login | [AuthForm.tsx](src/components/AuthForm.tsx) |
+| Student Phone Numbers | Student + parent phone fields on signup | [AuthForm.tsx](src/components/AuthForm.tsx) |
 | Profile Management | Avatar upload, display name edit | [Profile.tsx](src/pages/Profile.tsx) |
 
 ### B. Course Management (Lecturer Flow)
@@ -157,7 +161,8 @@ This table shows how each CONTEXT.md requirement maps to the UI implementation:
 |---------------------|-------------------|------|
 | Course Creation | Modal form with title, code, description | [CourseCreationForm.tsx](src/components/CourseCreationForm.tsx) |
 | Material Upload | Drag-drop with progress bars | [MaterialUpload.tsx](src/components/MaterialUpload.tsx) |
-| Analytics View | Charts showing performance data | [CourseAnalytics.tsx](src/pages/CourseAnalytics.tsx) |
+| Analytics View | Interactive bar charts with animations & tooltips | [CourseAnalytics.tsx](src/pages/CourseAnalytics.tsx) |
+| Student Feedback | Modal for sending advice to struggling students | [CourseAnalytics.tsx](src/pages/CourseAnalytics.tsx) |
 
 ### C. The Assessment Loop (Core Mechanic)
 
@@ -175,7 +180,8 @@ This table shows how each CONTEXT.md requirement maps to the UI implementation:
 | Calendar (Deadlines auto-added) | Full calendar with assignment deadlines | [Calendar.tsx](src/pages/Calendar.tsx) |
 | Personal Goals | CRUD with categories and dates | [Goals.tsx](src/pages/Goals.tsx) |
 | Dashboard Aggregation | Unified view: deadlines + goals + grades | [Dashboard.tsx](src/components/Dashboard.tsx) |
-| Notifications | Dropdown with grades, assignments, reminders | [NotificationDropdown.tsx](src/components/NotificationDropdown.tsx) |
+| Notifications | Dropdown with 1-hour deadline reminders | [NotificationDropdown.tsx](src/components/NotificationDropdown.tsx) |
+| AI Study Tools | PDF upload + AI-generated notes/summaries/questions | [AIStudyTools.tsx](src/pages/AIStudyTools.tsx) |
 
 ---
 
@@ -195,8 +201,9 @@ This table shows how each CONTEXT.md requirement maps to the UI implementation:
 5. **Assignment** → Read instructions → Submit text/file
 6. **View Grade** → See AI score + feedback (when graded)
 7. **My Submissions** → View all past submissions with filters
-8. **Calendar** → See deadlines + personal goals on calendar
-9. **Goals** → Create/edit/complete personal goals
+8. **AI Study Tools** → Upload PDFs → Generate notes, summaries, or practice questions with extensive customization
+9. **Calendar** → See deadlines + personal goals on calendar (with 1-hour deadline reminders)
+10. **Goals** → Create/edit/complete personal goals
 
 ### Lecturer Journey
 
@@ -213,7 +220,7 @@ This table shows how each CONTEXT.md requirement maps to the UI implementation:
 5. **Assignment** → View all student submissions
 6. **Grading Queue** → See all pending submissions across courses
 7. **Grade** → Open grading panel → See AI score → Override if needed
-8. **Analytics** → View charts for course performance
+8. **Analytics** → View interactive bar charts for course performance → Send feedback to struggling students via modal
 
 ---
 
@@ -275,8 +282,9 @@ See [PLAN.md](PLAN.md) for the full backend integration reference table.
 | Phase 5: Notifications | Task 18 | ✅ Complete |
 | Phase 6: Account | Tasks 19-20 | ✅ Complete |
 | Phase 7: Polish | Tasks 21-24 | ✅ Complete |
+| Phase 8: Stakeholder Features | Tasks 25-29 | ✅ Complete |
 
-**Overall Progress: 24/24 tasks (100% complete)** 🎉
+**Overall Progress: 29/29 tasks (100% complete)** 🎉
 
 See [PLAN.md](PLAN.md) for detailed task breakdown.
 
@@ -309,6 +317,46 @@ See [PLAN.md](PLAN.md) for detailed task breakdown.
 - Touch-friendly targets
 - Proper spacing for mobile content
 
+### Stakeholder Features (Phase 8)
+
+#### Phone Number Collection (Task 25)
+- Student phone field (required) on signup
+- Parent phone field (optional) for important updates
+- Formatted tel input with placeholder
+- Only visible during student registration
+
+#### Enhanced Course Analytics (Task 26)
+- Interactive bar chart with 800ms animations
+- Hover effects with semi-transparent cursors
+- Formatted tooltips with percentage display
+- Color-coded legend (Present/Absent)
+- Angled X-axis labels for readability
+- Y-axis label for clarity
+
+#### Lecturer Feedback System (Task 27)
+- "Send Advice" button appears on hover (high visibility)
+- Modal dialog with student performance summary
+- Rich textarea for personalized feedback
+- Success toast confirmation
+- Accessible to lecturers on analytics page
+
+#### 1-Hour Deadline Reminders (Task 28)
+- Updated notification timing to "Due in 1 Hour!"
+- Urgent messaging with ⏰ emoji
+- Warns about late penalties
+- Mock data updated with accurate timestamps
+
+#### AI Study Tools (Task 29)
+- **Comprehensive 800+ line page** with 5 tabs:
+  - **Upload Management**: Drag-drop upload, file status tracking, format validation (PDF, DOC, PPT, max 50MB)
+  - **Notes Generation**: 4 formats (Bullet/Paragraph/Mind Map/Cornell), 3 detail levels, toggles for examples/diagrams
+  - **Summary Generation**: 3 lengths (Brief/Moderate/Detailed), multi-select focus areas (Key Concepts, Important Definitions, Examples, Formulas, Historical Context), key terms toggle
+  - **Question Generation**: Difficulty slider (Easy/Medium/Hard/Mixed), quantity slider (5-50), 5 question types (Multiple Choice, True/False, Short Answer, Essay, Fill in the Blank), chapter selection, practice/test modes, explanations toggle, time limit slider (0-120 min)
+  - **Generated Content Library**: View/download/delete generated materials
+- **Stats Dashboard**: Files uploaded, notes generated, summaries created, questions generated
+- **Mock Generators**: Realistic preview data for all content types
+- **Extensive Customization**: 20+ settings for personalized study material generation
+
 ---
 
 ## 🚀 Ready for Production
@@ -323,12 +371,20 @@ This frontend implementation is **production-ready** with:
 
 ### Next Steps for Production:
 1. **Backend Integration**: Connect to Supabase (replace mock data)
-2. **Real AI Grading**: Integrate OpenAI/Anthropic API
-3. **File Storage**: Connect Supabase Storage for uploads
-4. **Real-time Updates**: Add WebSocket subscriptions
-5. **Testing**: Unit tests, integration tests, E2E tests
-6. **Performance**: Code splitting, lazy loading
-7. **Accessibility**: ARIA labels, keyboard navigation audit
+2. **Real AI Grading**: Integrate OpenAI/Anthropic API for assignment grading
+3. **AI Study Tools Backend**:
+   - Supabase Storage for PDF/document storage
+   - PDF parsing library (pdf-parse or similar) to extract text
+   - OpenAI/Anthropic API for notes, summaries, and question generation
+   - Prompt engineering for each content type with user settings
+   - Database storage for generated content with metadata
+4. **Phone Number Integration**: SMS notifications via Twilio or similar service
+5. **Lecturer Feedback**: Email notifications and database storage
+6. **File Storage**: Connect Supabase Storage for all uploads
+7. **Real-time Updates**: Add WebSocket subscriptions
+8. **Testing**: Unit tests, integration tests, E2E tests
+9. **Performance**: Code splitting, lazy loading
+10. **Accessibility**: ARIA labels, keyboard navigation audit
 
 ---
 
@@ -337,11 +393,15 @@ This frontend implementation is **production-ready** with:
 While not in the current scope, these could be added:
 - Push notifications
 - Real-time collaboration on assignments
-- AI quiz generation from materials
+- ~~AI quiz generation from materials~~ ✅ Implemented (AI Study Tools)
 - Video content support
 - Multi-language support
 - Advanced analytics dashboards
 - Export reports (PDF/CSV)
+- AI-powered study schedules based on uploaded materials
+- Flashcard generation from notes
+- Spaced repetition learning system
+- Voice-to-text for assignment submissions
 
 ## 🔗 Related Documents
 

@@ -16,6 +16,7 @@ import Calendar from "./pages/Calendar";
 import Goals from "./pages/Goals";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import AIStudyTools from "./pages/AIStudyTools";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -114,6 +115,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ai-tools"
+        element={
+          <ProtectedRoute>
+            <AIStudyTools />
           </ProtectedRoute>
         }
       />

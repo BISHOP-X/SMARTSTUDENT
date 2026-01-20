@@ -1,14 +1,19 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, TrendingUp, Users, FileText, Target, Download, AlertCircle } from "lucide-react";
+import { ArrowLeft, TrendingUp, Users, FileText, Target, Download, AlertCircle, MessageSquare, Send } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import { mockCourseAnalytics } from "@/data/mockData";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -27,8 +32,19 @@ export default function CourseAnalytics() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const courseId = parseInt(id || "0");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
 
   const analytics = mockCourseAnalytics[courseId];
+
+  const sendFeedback = () => {
+    // TODO: API call to send feedback/advice to student
+    console.log("Sending feedback to:", selectedStudent, feedbackMessage);
+    toast.success(`Advice sent to ${selectedStudent}! They'll receive a notification.`);
+    setFeedbackOpen(false);
+    setFeedbackMessage("");
+  };
 
   if (!analytics) {
     return (
@@ -173,14 +189,24 @@ export default function CourseAnalytics() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={analytics.gradeDistribution}>
+                      <BarChart 
+                        data={analytics.gradeDistribution}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis
                           dataKey="range"
                           stroke="#94a3b8"
                           tick={{ fill: "#94a3b8" }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={60}
                         />
-                        <YAxis stroke="#94a3b8" tick={{ fill: "#94a3b8" }} />
+                        <YAxis 
+                          stroke="#94a3b8" 
+                          tick={{ fill: "#94a3b8" }}
+                          label={{ value: 'Number of Students', angle: -90, position: 'insideLeft', fill: '#94a3b8' }}
+                        />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "#1e293b",
@@ -189,10 +215,21 @@ export default function CourseAnalytics() {
                           }}
                           labelStyle={{ color: "#f1f5f9" }}
                           itemStyle={{ color: "#a78bfa" }}
+                          formatter={(value: any) => [`${value} students`, 'Count']}
+                          cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }}
                         />
-                        <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                        <Bar 
+                          dataKey="count" 
+                          radius={[8, 8, 0, 0]}
+                          animationDuration={800}
+                          animationBegin={0}
+                        >
                           {analytics.gradeDistribution.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={barColors[index]} />
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={barColors[index]}
+                              className="hover:opacity-80 transition-opacity cursor-pointer"
+                            />
                           ))}
                         </Bar>
                       </BarChart>
@@ -200,14 +237,23 @@ export default function CourseAnalytics() {
                     <div className="mt-4 space-y-2">
                       {analytics.gradeDistribution.map((dist, idx) => (
                         <div key={idx} className="flex items-center justify-between text-sm">
-                          <span className="text-slate-400">{dist.range}</span>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-sm" 
+                              style={{ backgroundColor: barColors[idx] }}
+                            />
+                            <span className="text-slate-400">{dist.range}</span>
+                          </div>
                           <div className="flex items-center gap-2">
                             <Progress
                               value={dist.percentage}
                               className="w-24 h-2"
+                              style={{
+                                ['--progress-background' as any]: barColors[idx]
+                              }}
                             />
-                            <span className="text-slate-300 w-12 text-right">
-                              {dist.count} ({dist.percentage.toFixed(1)}%)
+                            <span className="text-slate-300 w-16 text-right">
+                              {dist.count} ({dist.percentage.toFixed(0)}%)
                             </span>
                           </div>
                         </div>
@@ -322,13 +368,13 @@ export default function CourseAnalytics() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {analytics.strugglingStudents.map((student, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700"
+                          className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-orange-500/50 transition-all group"
                         >
-                          <div>
+                          <div className="flex-1">
                             <p className="font-medium text-white">{student.studentName}</p>
                             <div className="flex items-center gap-3 mt-1">
                               <p className="text-xs text-slate-400">
@@ -340,9 +386,89 @@ export default function CourseAnalytics() {
                               </p>
                             </div>
                           </div>
-                          <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
-                            {student.averageGrade.toFixed(1)}%
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                              {student.averageGrade.toFixed(1)}%
+                            </Badge>
+                            <Dialog open={feedbackOpen && selectedStudent === student.studentName} onOpenChange={(open) => {
+                              setFeedbackOpen(open);
+                              if (open) setSelectedStudent(student.studentName);
+                            }}>
+                              <DialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => setSelectedStudent(student.studentName)}
+                                >
+                                  <MessageSquare className="w-3 h-3 mr-1" />
+                                  Send Advice
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800">
+                                <DialogHeader>
+                                  <DialogTitle className="text-white flex items-center gap-2">
+                                    <MessageSquare className="w-5 h-5 text-orange-400" />
+                                    Send Advice to {student.studentName}
+                                  </DialogTitle>
+                                  <DialogDescription>
+                                    Your message will be sent as a notification and email to help them improve.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                  {/* Student Performance Summary */}
+                                  <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-slate-400">Current Grade:</span>
+                                      <span className="text-orange-400 font-semibold">{student.averageGrade.toFixed(1)}%</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-slate-400">Assignments Completed:</span>
+                                      <span className="text-white">{student.assignmentsCompleted}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-slate-400">Missed Deadlines:</span>
+                                      <span className="text-orange-400">{student.missedDeadlines}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label htmlFor="feedback" className="text-white">Your Advice</Label>
+                                    <Textarea
+                                      id="feedback"
+                                      placeholder="Share constructive feedback and encouragement...&#10;&#10;Example: I've noticed you're having difficulty with recent assignments. Let's schedule office hours to discuss strategies that can help improve your understanding of the material."
+                                      className="min-h-[150px] bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                                      value={feedbackMessage}
+                                      onChange={(e) => setFeedbackMessage(e.target.value)}
+                                    />
+                                    <p className="text-xs text-slate-400">
+                                      Be encouraging and offer specific resources or support.
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3 justify-end">
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setFeedbackOpen(false);
+                                      setFeedbackMessage("");
+                                    }}
+                                    className="border-slate-700"
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    onClick={sendFeedback}
+                                    disabled={!feedbackMessage.trim()}
+                                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                                  >
+                                    <Send className="w-4 h-4 mr-2" />
+                                    Send Advice
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
                         </div>
                       ))}
                     </div>

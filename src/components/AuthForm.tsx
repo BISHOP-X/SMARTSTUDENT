@@ -15,6 +15,8 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [parentPhone, setParentPhone] = useState("");
   const [role, setRole] = useState<"student" | "lecturer">("student");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -151,6 +153,41 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
                   className="h-10"
                 />
               </div>
+            )}
+
+            {isSignUp && role === "student" && (
+              <>
+                <div className="space-y-2 animate-fade-in">
+                  <Label htmlFor="phone" className="text-foreground text-sm">
+                    Your Phone Number <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    className="h-10"
+                  />
+                  <p className="text-xs text-muted-foreground">For important notifications and reminders</p>
+                </div>
+
+                <div className="space-y-2 animate-fade-in">
+                  <Label htmlFor="parentPhone" className="text-foreground text-sm">
+                    Parent/Guardian Phone Number <span className="text-muted-foreground">(Optional)</span>
+                  </Label>
+                  <Input
+                    id="parentPhone"
+                    type="tel"
+                    placeholder="+1 (555) 987-6543"
+                    value={parentPhone}
+                    onChange={(e) => setParentPhone(e.target.value)}
+                    className="h-10"
+                  />
+                  <p className="text-xs text-muted-foreground">We'll notify them about important updates</p>
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
