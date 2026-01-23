@@ -1,0 +1,54 @@
+# Supabase Local Development Configuration
+# This file configures the local Supabase instance for development
+
+[api]
+# Port to use for the API URL
+port = 54321
+# Schemas to expose in the API
+schemas = ["public", "storage"]
+# Extra schemas to add to the search_path
+extra_search_path = ["public", "extensions"]
+# Maximum number of rows to return from a single request
+max_rows = 1000
+
+[db]
+# Port to use for the local database URL
+port = 54322
+# The database major version to use
+major_version = 15
+
+[studio]
+# Port to use for Supabase Studio (local dashboard)
+port = 54323
+# URL for the API (used by Studio)
+api_url = "http://localhost"
+
+[inbucket]
+# Port to use for the email testing server
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+# Enable local storage emulation
+enabled = true
+# Port for storage API
+port = 54327
+
+[auth]
+# Site URL for authentication redirects
+site_url = "http://localhost:8080"
+# Additional redirect URLs allowed
+additional_redirect_urls = ["http://localhost:8080"]
+# JWT expiry time in seconds (3600 = 1 hour)
+jwt_expiry = 3600
+# Enable signup
+enable_signup = true
+
+[auth.email]
+# Enable email auth
+enable_signup = true
+# Double confirm email changes
+double_confirm_changes = false
+# Enable email confirmations (disabled for demo)
+enable_confirmations = false
