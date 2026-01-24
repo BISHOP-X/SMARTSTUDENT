@@ -1,8 +1,8 @@
-# SmartStudent
+# EduSync
 
 > AI-Augmented Learning Management System - Complete Frontend + Backend Demo
 
-SmartStudent is an AI-Augmented Learning Management System (LMS) designed to unify the currently fragmented higher-education experience. It combines course material access, intelligent assessment, and personal productivity tools into one cohesive web interface.
+EduSync is an AI-Augmented Learning Management System (LMS) designed to unify the currently fragmented higher-education experience. It combines course material access, intelligent assessment, and personal productivity tools into one cohesive web interface.
 
 **📋 Current Status:** Frontend 100% Complete | Backend Connected (Supabase)
 
@@ -12,7 +12,7 @@ SmartStudent is an AI-Augmented Learning Management System (LMS) designed to uni
 
 ### Why Are Keys Visible in the Code?
 
-**This is intentional.** SmartStudent is a **final year project demonstration** designed for easy evaluation. The API keys are embedded directly in the source code so that:
+**This is intentional.** EduSync is a **final year project demonstration** designed for easy evaluation. The API keys are embedded directly in the source code so that:
 
 ✅ **Evaluators can run the app immediately** - No setup required  
 ✅ **No `.env` file configuration needed** - Just `npm install && npm run dev`  
@@ -30,7 +30,7 @@ const supabaseAnonKey = 'sb_publishable_677MqU1hnBeYXNCH2gz66A_YV689T6q';
 
 ## 🎭 Dual Login System: How to Test
 
-SmartStudent features a **dual login system** that lets evaluators experience both the technical backend AND the full UI/UX:
+EduSync features a **dual login system** that lets evaluators experience both the technical backend AND the full UI/UX:
 
 ### Option 1: 🔐 Real Authentication (Test Backend)
 
@@ -81,7 +81,7 @@ SmartStudent features a **dual login system** that lets evaluators experience bo
 
 ### Why Pre-Populated Data in Demo Mode?
 
-SmartStudent is a **proof-of-concept demonstration** showcasing what a fully-functioning AI-powered learning management system looks like in action. 
+EduSync is a **proof-of-concept demonstration** showcasing what a fully-functioning AI-powered learning management system looks like in action. 
 
 **Here's the reality:** For a system like this to display meaningful data naturally, it would require:
 - Dozens of students actively using the platform over several weeks
@@ -93,7 +93,7 @@ SmartStudent is a **proof-of-concept demonstration** showcasing what a fully-fun
 
 ### Our Solution: Smart Demonstration Data
 
-Instead of showing empty screens, SmartStudent comes **pre-loaded with realistic sample data** that represents what the system would look like after a full semester of use. This allows anyone evaluating the system to:
+Instead of showing empty screens, EduSync comes **pre-loaded with realistic sample data** that represents what the system would look like after a full semester of use. This allows anyone evaluating the system to:
 
 ✅ **Immediately see all features in action** - No setup required  
 ✅ **Experience the complete user journey** - Both student and lecturer perspectives  
@@ -128,7 +128,7 @@ While using demonstration data, the codebase is **architecturally ready for prod
 
 ## 📖 Table of Contents
 
-1. [What is SmartStudent?](#-what-is-smartstudent)
+1. [What is EduSync?](#-what-is-EduSync)
 2. [Quick Start Guide](#-quick-start-guide)
 3. [How to Test the App](#-how-to-test-the-app)
 4. [Feature Overview](#-feature-overview)
@@ -139,16 +139,16 @@ While using demonstration data, the codebase is **architecturally ready for prod
 
 ---
 
-## 🎯 What is SmartStudent?
+## 🎯 What is EduSync?
 
-SmartStudent solves two major problems in higher education:
+EduSync solves two major problems in higher education:
 
-| Problem | How SmartStudent Solves It |
+| Problem | How EduSync Solves It |
 |---------|---------------------------|
 | **Students wait weeks for grades** | AI automatically grades assignments and provides instant feedback |
 | **Too many different systems** | One unified dashboard for courses, grades, deadlines, and personal goals |
 
-### Who Uses SmartStudent?
+### Who Uses EduSync?
 
 | User | What They Can Do |
 |------|------------------|
@@ -161,7 +161,7 @@ SmartStudent solves two major problems in higher education:
 
 ### What You Need First
 
-Before running SmartStudent, make sure you have:
+Before running EduSync, make sure you have:
 
 1. **Node.js** (version 16 or higher)
    - Download from: https://nodejs.org/
@@ -177,10 +177,10 @@ Open your terminal (Command Prompt on Windows, Terminal on Mac) and run these co
 
 ```bash
 # Step 1: Clone the repository (download the code)
-git clone https://github.com/BISHOP-X/SMARTSTUDENT.git
+git clone https://github.com/BISHOP-X/EduSync.git
 
 # Step 2: Navigate into the project folder
-cd SMARTSTUDENT
+cd EduSync
 
 # Step 3: Install all required packages (this may take a minute)
 npm install
@@ -760,4 +760,4 @@ This project is licensed under the MIT License.
 
 **Built with ❤️ using React, TypeScript, and Vite**
 
-*SmartStudent - Learn Smarter, Achieve More*
+*EduSync - Learn Smarter, Achieve More*

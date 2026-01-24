@@ -1,4 +1,4 @@
-// Mock data for SmartStudent application
+// Mock data for EduSync application
 // This file contains all mock data used across the application
 
 export interface Assignment {

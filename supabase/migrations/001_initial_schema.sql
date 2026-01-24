@@ -1,5 +1,5 @@
 -- ============================================
--- SmartStudent Database Schema
+-- EduSync Database Schema
 -- Minimal backend for demonstration purposes
 -- ============================================
 

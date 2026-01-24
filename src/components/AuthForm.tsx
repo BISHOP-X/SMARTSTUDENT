@@ -6,6 +6,7 @@ import { Eye, EyeOff, Sparkles, ArrowRight, GraduationCap, BookOpen, Play, Loade
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-auth.jpg";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AuthFormProps {
   onLogin: (role: "student" | "lecturer", isDemo?: boolean) => void;
@@ -136,6 +137,11 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
       />
       <div className="hero-overlay" />
 
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle variant="switch" />
+      </div>
+
       {/* Animated gradient orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-glow-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/15 rounded-full blur-3xl animate-glow-pulse" style={{ animationDelay: '1.5s' }} />
@@ -148,7 +154,7 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-info flex items-center justify-center shadow-glow">
               <Sparkles className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-3xl font-bold text-foreground">SmartStudent</span>
+            <span className="text-3xl font-bold text-foreground">EduSync</span>
           </div>
           <h1 className="text-5xl font-bold mb-6 leading-tight">
             <span className="text-foreground">Learn smarter.</span>
@@ -168,7 +174,7 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-info flex items-center justify-center shadow-glow">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold text-foreground">SmartStudent</span>
+            <span className="text-2xl font-bold text-foreground">EduSync</span>
           </div>
 
           <div className="mb-6">

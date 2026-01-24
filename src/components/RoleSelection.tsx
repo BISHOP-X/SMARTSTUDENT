@@ -62,7 +62,7 @@ const RoleSelection = ({ open, onRoleSelect }: RoleSelectionProps) => {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-info flex items-center justify-center shadow-glow">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
-            <DialogTitle className="text-2xl">Welcome to SmartStudent</DialogTitle>
+            <DialogTitle className="text-2xl">Welcome to EduSync</DialogTitle>
           </div>
           <DialogDescription className="text-base">
             Choose your role to get started with your personalized experience

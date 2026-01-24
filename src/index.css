@@ -2,9 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* SmartStudent Design System - Cinematic & Premium LMS */
+/* EduSync Design System - Premium LMS with Light/Dark Mode */
 
 @layer base {
+  /* ==========================================
+     DARK MODE (Default) - Cinematic & Premium
+     ========================================== */
   :root {
     /* Core Background - Deep Navy */
     --background: 222 47% 6%;
@@ -56,24 +59,27 @@
     --info: 200 85% 55%;
     --info-foreground: 222 47% 6%;
 
-    /* Glass Morphism */
+    /* Glass Morphism - Dark mode */
     --glass: 220 30% 98% / 0.08;
     --glass-border: 220 30% 98% / 0.15;
     --glass-highlight: 220 30% 98% / 0.25;
 
-    /* Gradients */
+    /* Gradients - Dark mode */
     --gradient-primary: linear-gradient(135deg, hsl(185 60% 45%) 0%, hsl(200 70% 50%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(35 100% 55%) 0%, hsl(25 100% 50%) 100%);
     --gradient-surface: linear-gradient(180deg, hsl(222 47% 10%) 0%, hsl(222 47% 6%) 100%);
     --gradient-glow: radial-gradient(circle at center, hsl(185 60% 45% / 0.15) 0%, transparent 70%);
 
-    /* Shadows */
+    /* Hero Gradient - Dark */
+    --hero-gradient: linear-gradient(135deg, hsl(222 47% 8%) 0%, hsl(222 47% 4%) 50%, hsl(200 50% 8%) 100%);
+
+    /* Shadows - Dark mode */
     --shadow-sm: 0 2px 8px -2px hsl(222 47% 4% / 0.5);
     --shadow-md: 0 8px 24px -8px hsl(222 47% 4% / 0.6);
     --shadow-lg: 0 16px 48px -12px hsl(222 47% 4% / 0.7);
     --shadow-glow: 0 0 40px -10px hsl(185 60% 45% / 0.4);
 
-    /* Sidebar */
+    /* Sidebar - Dark mode */
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 210 40% 85%;
     --sidebar-primary: 185 60% 45%;
@@ -82,12 +88,134 @@
     --sidebar-accent-foreground: 210 40% 95%;
     --sidebar-border: 220 30% 15%;
     --sidebar-ring: 185 60% 45%;
+
+    /* Chart Colors */
+    --chart-1: 185 60% 45%;
+    --chart-2: 35 100% 55%;
+    --chart-3: 160 84% 39%;
+    --chart-4: 200 85% 55%;
+    --chart-5: 280 65% 60%;
   }
 
-  /* We're designing dark-first, so .dark inherits root */
+  /* Dark class explicitly set */
   .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 98%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 185 60% 45%;
+    --primary-foreground: 222 47% 6%;
+    --secondary: 215 30% 18%;
+    --secondary-foreground: 210 40% 95%;
+    --muted: 220 30% 12%;
+    --muted-foreground: 215 20% 60%;
+    --accent: 35 100% 55%;
+    --accent-foreground: 222 47% 6%;
+    --border: 220 30% 18%;
+    --input: 220 30% 15%;
+    --glass: 220 30% 98% / 0.08;
+    --glass-border: 220 30% 98% / 0.15;
+    --glass-highlight: 220 30% 98% / 0.25;
+    --hero-gradient: linear-gradient(135deg, hsl(222 47% 8%) 0%, hsl(222 47% 4%) 50%, hsl(200 50% 8%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(222 47% 10%) 0%, hsl(222 47% 6%) 100%);
+    --shadow-sm: 0 2px 8px -2px hsl(222 47% 4% / 0.5);
+    --shadow-md: 0 8px 24px -8px hsl(222 47% 4% / 0.6);
+    --shadow-lg: 0 16px 48px -12px hsl(222 47% 4% / 0.7);
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 85%;
+    --sidebar-accent: 220 30% 15%;
+    --sidebar-border: 220 30% 15%;
+  }
+
+  /* ==========================================
+     LIGHT MODE - Clean, Modern & Professional
+     ========================================== */
+  .light {
+    /* Core Background - Soft White/Gray */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    /* Card Surfaces - Pure White with subtle shadow */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    /* Popover - White */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Deeper Teal for better contrast */
+    --primary: 185 70% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Light Gray Blue */
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Muted - Subtle Gray */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent - Richer Amber */
+    --accent: 35 95% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive - Vibrant Red */
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders & Inputs - Light mode */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 185 70% 35%;
+
+    /* Custom Colors - Light mode adjusted */
+    --success: 160 84% 30%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 45 93% 47%;
+    --warning-foreground: 222 47% 11%;
+    
+    --info: 200 85% 45%;
+    --info-foreground: 0 0% 100%;
+
+    /* Glass Morphism - Light mode */
+    --glass: 222 47% 11% / 0.03;
+    --glass-border: 222 47% 11% / 0.08;
+    --glass-highlight: 0 0% 100% / 0.8;
+
+    /* Gradients - Light mode */
+    --gradient-primary: linear-gradient(135deg, hsl(185 70% 35%) 0%, hsl(200 80% 40%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(35 95% 50%) 0%, hsl(25 95% 45%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(210 40% 100%) 0%, hsl(210 40% 97%) 100%);
+    --gradient-glow: radial-gradient(circle at center, hsl(185 70% 35% / 0.08) 0%, transparent 70%);
+
+    /* Hero Gradient - Light */
+    --hero-gradient: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(220 40% 96%) 50%, hsl(200 50% 96%) 100%);
+
+    /* Shadows - Light mode (softer) */
+    --shadow-sm: 0 1px 3px 0 hsl(222 47% 11% / 0.05), 0 1px 2px -1px hsl(222 47% 11% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.08), 0 2px 4px -2px hsl(222 47% 11% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.08), 0 4px 6px -4px hsl(222 47% 11% / 0.05);
+    --shadow-glow: 0 0 30px -8px hsl(185 70% 35% / 0.2);
+
+    /* Sidebar - Light mode */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 185 70% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 32% 95%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 185 70% 35%;
+
+    /* Chart Colors - Light mode adjusted */
+    --chart-1: 185 70% 35%;
+    --chart-2: 35 95% 50%;
+    --chart-3: 160 84% 30%;
+    --chart-4: 200 85% 45%;
+    --chart-5: 280 65% 50%;
   }
 }
 

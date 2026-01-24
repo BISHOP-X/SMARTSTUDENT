@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavigationProps {
   activeTab: string;
@@ -94,17 +95,20 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
           {!isCollapsed && (
-            <span className="text-lg font-bold text-foreground whitespace-nowrap">SmartStudent</span>
+            <span className="text-lg font-bold text-foreground whitespace-nowrap">EduSync</span>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={cn("shrink-0", isCollapsed && "hidden")}
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {!isCollapsed && <ThemeToggle variant="icon" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={cn("shrink-0", isCollapsed && "hidden")}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Navigation Items */}
@@ -136,6 +140,13 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
 
       {/* Bottom Section - Fixed at bottom */}
       <div className="p-4 border-t border-sidebar-border space-y-2 shrink-0">
+        {/* Theme Toggle - Visible when collapsed */}
+        {isCollapsed && (
+          <div className="flex justify-center mb-2">
+            <ThemeToggle variant="icon" />
+          </div>
+        )}
+        
         {/* Logout Button - Always Visible */}
         <Button 
           variant="destructive" 

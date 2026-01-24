@@ -1,4 +1,4 @@
-# SmartStudent Backend Status
+# EduSync Backend Status
 
 ## 🎯 Implementation Phases
 
