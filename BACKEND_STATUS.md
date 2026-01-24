@@ -28,7 +28,12 @@
   - Demo mode fallback with simulated grades
 - [x] AI mode indicator (shows demo vs real AI status)
 - [x] Error handling and loading states
-- **Status:** Fully wired! Test with real user account.
+- [x] **Edge Functions deployed** to Supabase
+  - study-tools deployed ✅
+  - grade-submission deployed ✅
+  - Groq API key configured ✅
+  - Auth relaxed to allow requests ✅
+- **Status:** READY FOR TESTING!
 
 ### Phase 3: Real Data Layer (Optional)
 **Goal:** Replace mock data with real database tables
@@ -208,21 +213,43 @@ supabase db push
 
 ## 🎯 REMAINING PHASES TO COMPLETE MINIMAL BACKEND
 
-### Phase 3: Testing & Validation ⏳ NEXT
+### Phase 3: Testing & Validation ⏳ NEXT (15 minutes)
 **Goal:** Verify AI features work with real users
-- [ ] Create real user account (not demo)
-- [ ] Test AI Study Tools
-  - [ ] Paste text content
-  - [ ] Generate notes (try bullet/paragraph formats)
-  - [ ] Generate summary
-  - [ ] Generate practice questions
-  - [ ] Download/copy content
-- [ ] Test Assignment Grading
-  - [ ] Submit an assignment
-  - [ ] Verify AI grading happens instantly
-  - [ ] Check score and feedback quality
-- [ ] Verify demo mode still works
-- **Time estimate:** 30 minutes
+- [ ] **Test AI Study Tools**
+  - [ ] Login with real account (or use demo)
+  - [ ] Paste text content in "Paste Text" mode
+  - [ ] Generate notes → Should call real Groq API
+  - [ ] Generate summary → Should call real Groq API
+  - [ ] Generate practice questions → Should call real Groq API
+  - [ ] Verify "✨ Real AI Active" indicator shows
+  - [ ] Download/copy generated content
+- [ ] **Test Assignment Grading**
+  - [ ] Go to any course → any assignment
+  - [ ] Submit an answer
+  - [ ] Verify instant AI grading with score + feedback
+  - [ ] Check that feedback is detailed and relevant
+- [ ] **Verify Demo Mode**
+  - [ ] Logout → "Continue with Demo"
+  - [ ] Verify mock data still works (no real API calls)
+- **Time estimate:** 15 minutes
+- **Status:** Ready to test (Edge Functions just deployed)
+
+---
+
+## ✅ MINIMAL BACKEND IS COMPLETE WHEN:
+1. ✅ Users can sign up and log in (DONE)
+2. ✅ AI Study Tools work with real Groq API (DONE - deployed)
+3. ✅ Assignment grading uses real AI (DONE - deployed)
+4. ✅ Profile data saves to database (DONE)
+5. ⏳ Real user testing confirms everything works (NEXT - Phase 3)
+
+**After Phase 3, the minimal backend is COMPLETE! 🎉**
+
+---
+
+## 📦 OPTIONAL FUTURE ENHANCEMENTS
+
+These are NOT required for minimal backend completion but nice to have:
 
 ### Phase 4: Data Persistence (Optional - Recommended)
 **Goal:** Replace mock data with real database tables

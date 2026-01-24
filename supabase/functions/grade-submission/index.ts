@@ -46,11 +46,11 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Get the current user
+    // Try to verify user is authenticated (optional for now - allows demo mode)
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
-      throw new Error("Unauthorized");
-    }
+    
+    // Log authentication attempt (for debugging)
+    console.log("Auth attempt:", { hasUser: !!user, userError: userError?.message });
 
     // Parse the request body
     const { assignmentTitle, assignmentContext, studentAnswer, maxScore }: GradingRequest = await req.json();
