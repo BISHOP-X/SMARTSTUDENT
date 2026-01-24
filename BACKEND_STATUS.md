@@ -206,13 +206,70 @@ supabase db push
 
 ---
 
-## 🎯 Recommended Next Steps
+## 🎯 REMAINING PHASES TO COMPLETE MINIMAL BACKEND
 
-1. **Get Groq API Key** - 5 minutes, free
-2. **Deploy Edge Functions** - 10 minutes
-3. **Test AI Grading** - Submit assignment, see AI grade
-4. **Test Study Tools** - Generate notes from content
-5. **Add Courses Table** - Store real course data (if needed)
+### Phase 3: Testing & Validation ⏳ NEXT
+**Goal:** Verify AI features work with real users
+- [ ] Create real user account (not demo)
+- [ ] Test AI Study Tools
+  - [ ] Paste text content
+  - [ ] Generate notes (try bullet/paragraph formats)
+  - [ ] Generate summary
+  - [ ] Generate practice questions
+  - [ ] Download/copy content
+- [ ] Test Assignment Grading
+  - [ ] Submit an assignment
+  - [ ] Verify AI grading happens instantly
+  - [ ] Check score and feedback quality
+- [ ] Verify demo mode still works
+- **Time estimate:** 30 minutes
+
+### Phase 4: Data Persistence (Optional - Recommended)
+**Goal:** Replace mock data with real database tables
+- [ ] Create database tables
+  - [ ] `courses` table (id, title, description, lecturer_id, created_at)
+  - [ ] `assignments` table (id, course_id, title, description, due_date, total_points)
+  - [ ] `submissions` table (id, assignment_id, student_id, content, submitted_at, score, feedback)
+  - [ ] `enrollments` table (id, user_id, course_id, enrolled_at)
+- [ ] Update Course pages to load from database
+- [ ] Update Assignment pages to load from database
+- [ ] Add CRUD operations for lecturers
+- **Time estimate:** 4-5 hours
+- **Why optional:** App works with mock data for demo purposes
+
+### Phase 5: File Storage (Optional - Future Enhancement)
+**Goal:** Real file uploads for materials and submissions
+- [ ] Configure Supabase Storage bucket
+- [ ] Add file upload for course materials (lecturer)
+- [ ] Add file upload for assignment submissions (student)
+- [ ] Add avatar image uploads
+- [ ] Parse uploaded files (PDF, DOCX) for AI processing
+- **Time estimate:** 3-4 hours
+- **Why optional:** Text input mode already works for AI features
+
+### Phase 6: Real-time Features (Optional - Polish)
+**Goal:** Live updates and notifications
+- [ ] Setup Supabase Realtime subscriptions
+- [ ] Create notifications table
+- [ ] Add real-time grade notifications
+- [ ] Add "new assignment" notifications
+- [ ] Live dashboard updates
+- **Time estimate:** 2-3 hours
+- **Why optional:** App works without real-time; nice-to-have feature
+
+---
+
+## ✅ MINIMAL BACKEND IS COMPLETE WHEN:
+1. ✅ Users can sign up and log in (DONE)
+2. ✅ AI Study Tools work with real Groq API (DONE)
+3. ✅ Assignment grading uses real AI (DONE)
+4. ✅ Profile data saves to database (DONE)
+5. ⏳ Real user testing confirms everything works (NEXT - Phase 3)
+
+**Optional for "production-ready":**
+- Real database tables for courses/assignments (Phase 4)
+- File uploads (Phase 5)
+- Real-time notifications (Phase 6)
 
 ---
 
