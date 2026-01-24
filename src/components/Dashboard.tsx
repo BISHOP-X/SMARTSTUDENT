@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Search, Clock, TrendingUp, BookOpen, Users, AlertCircle, CheckCircle2, GraduationCap, FileText, Target, Zap, Award, Calendar as CalendarIcon, ArrowRight, Sparkles, BarChart3 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Plus, Search, Clock, TrendingUp, BookOpen, Users, AlertCircle, CheckCircle2, GraduationCap, FileText, Target, Zap, Award, Calendar as CalendarIcon, ArrowRight, Sparkles, BarChart3, Database, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   mockUpcomingDeadlines, 
   mockRecentGrades, 
@@ -33,6 +35,7 @@ import NotificationDropdown from "@/components/NotificationDropdown";
 interface DashboardProps {
   userRole: "student" | "lecturer";
   onLogout: () => void;
+  isDemo?: boolean;
 }
 
 const courses = [
@@ -74,9 +77,22 @@ const courses = [
   },
 ];
 
-const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
+const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // Get display name based on auth mode
+  const getDisplayName = () => {
+    if (isDemo) {
+      return userRole === "student" ? "Alex" : "Dr. Morgan";
+    }
+    // Real auth - use email username or generic greeting
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return userRole === "student" ? "Student" : "Professor";
+  };
 
   const handleCourseClick = (courseId: number) => {
     navigate(`/courses/${courseId}`);
@@ -94,39 +110,54 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
     navigate("/grading");
   };
 
+  // ============================================
+  // DATA BASED ON AUTH MODE
+  // Demo mode: Show sample data | Real auth: Show empty (new user)
+  // ============================================
+  
+  // Courses to display
+  const displayCourses = isDemo ? courses : [];
+  const displayDeadlines = isDemo ? mockUpcomingDeadlines : [];
+  const displayGrades = isDemo ? mockRecentGrades : [];
+  const displayStudentSubmissions = isDemo ? mockStudentSubmissions : [];
+  const displayCoursesTaught = isDemo ? mockCoursesTaught : [];
+  const displayLecturerSubmissions = isDemo ? mockLecturerSubmissions : [];
+
   // Calculate quick stats for students
-  const coursesEnrolled = courses.length;
-  const pendingAssignments = mockUpcomingDeadlines.filter(a => a.status === "upcoming").length;
-  const averageGrade = mockRecentGrades.length > 0 
-    ? Math.round(mockRecentGrades.reduce((acc, g) => acc + (g.score / g.maxScore * 100), 0) / mockRecentGrades.length)
+  const coursesEnrolled = displayCourses.length;
+  const pendingAssignments = displayDeadlines.filter(a => a.status === "upcoming").length;
+  const averageGrade = displayGrades.length > 0 
+    ? Math.round(displayGrades.reduce((acc, g) => acc + (g.score / g.maxScore * 100), 0) / displayGrades.length)
     : 0;
 
   // Additional stats for enhanced dashboard
-  const totalSubmissions = mockStudentSubmissions.length;
-  const completedAssignments = mockStudentSubmissions.filter(s => s.status === "graded").length;
+  const totalSubmissions = displayStudentSubmissions.length;
+  const completedAssignments = displayStudentSubmissions.filter(s => s.status === "graded").length;
   const assignmentCompletionRate = totalSubmissions > 0 
     ? Math.round((completedAssignments / totalSubmissions) * 100) 
     : 0;
   
   // Study streak (mock data - days in a row with activity)
-  const studyStreak = 7; // Mock: 7 days streak
+  const studyStreak = isDemo ? 7 : 0; // Real auth starts fresh
   
   // Next class calculation
-  const nextClass = courses.reduce((nearest, course) => {
-    const courseTime = new Date(course.nextClass).getTime();
-    const nearestTime = new Date(nearest.nextClass).getTime();
-    return courseTime < nearestTime ? course : nearest;
-  }, courses[0]);
+  const nextClass = displayCourses.length > 0 
+    ? displayCourses.reduce((nearest, course) => {
+        const courseTime = new Date(course.nextClass).getTime();
+        const nearestTime = new Date(nearest.nextClass).getTime();
+        return courseTime < nearestTime ? course : nearest;
+      }, displayCourses[0])
+    : null;
 
   // Grade trend (mock data showing improvement)
-  const gradeTrend = mockRecentGrades.length >= 2 
-    ? mockRecentGrades[0].score / mockRecentGrades[0].maxScore - mockRecentGrades[mockRecentGrades.length - 1].score / mockRecentGrades[mockRecentGrades.length - 1].maxScore
+  const gradeTrend = displayGrades.length >= 2 
+    ? displayGrades[0].score / displayGrades[0].maxScore - displayGrades[displayGrades.length - 1].score / displayGrades[displayGrades.length - 1].maxScore
     : 0;
   const isTrendingUp = gradeTrend > 0;
 
   // Calculate performance by course
-  const performanceByCourse = courses.map(course => {
-    const courseGrades = mockRecentGrades.filter(g => g.courseName === course.title);
+  const performanceByCourse = displayCourses.map(course => {
+    const courseGrades = displayGrades.filter(g => g.courseName === course.title);
     const avgGrade = courseGrades.length > 0
       ? Math.round(courseGrades.reduce((acc, g) => acc + (g.score / g.maxScore * 100), 0) / courseGrades.length)
       : 0;
@@ -134,12 +165,25 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
   });
 
   // Calculate quick stats for lecturers
-  const totalStudents = mockCoursesTaught.reduce((acc, c) => acc + c.students, 0);
-  const totalPendingGrades = mockLecturerSubmissions.filter(s => s.status === "pending").length;
-  const courseCount = mockCoursesTaught.length;
+  const totalStudents = displayCoursesTaught.reduce((acc, c) => acc + c.students, 0);
+  const totalPendingGrades = displayLecturerSubmissions.filter(s => s.status === "pending").length;
+  const courseCount = displayCoursesTaught.length;
 
   const renderStudentDashboard = () => (
     <>
+      {/* Real Auth Mode Banner */}
+      {!isDemo && (
+        <Alert className="mb-6 border-info/50 bg-info/5">
+          <Database className="h-4 w-4 text-info" />
+          <AlertTitle className="text-info">Real Backend Connected</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            You're logged in with a real account! This is a fresh account with no historical data. 
+            Try creating a <strong>Goal</strong> on the Goals page to see data persistence in action.
+            For the full app experience with sample data, logout and use "Try Demo" instead.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Quick Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card className="glass-card border-0">
@@ -215,29 +259,37 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
         {/* Next Class Countdown */}
         <Card className="glass-card border-0 bg-gradient-to-br from-primary/5 to-info/5">
           <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <CalendarIcon className="w-5 h-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Next Class</h3>
+            {nextClass ? (
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CalendarIcon className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold text-foreground">Next Class</h3>
+                  </div>
+                  <h4 className="text-lg font-bold text-foreground mb-1">{nextClass.title}</h4>
+                  <p className="text-sm text-muted-foreground mb-3">{nextClass.nextClass}</p>
+                  <Button 
+                    variant="hero" 
+                    size="sm"
+                    onClick={() => handleCourseClick(nextClass.id)}
+                  >
+                    View Course
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
                 </div>
-                <h4 className="text-lg font-bold text-foreground mb-1">{nextClass.title}</h4>
-                <p className="text-sm text-muted-foreground mb-3">{nextClass.nextClass}</p>
-                <Button 
-                  variant="hero" 
-                  size="sm"
-                  onClick={() => handleCourseClick(nextClass.id)}
-                >
-                  View Course
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
+                <div className="text-right">
+                  <Badge variant="outline" className="border-primary/30 text-primary">
+                    Starting Soon
+                  </Badge>
+                </div>
               </div>
-              <div className="text-right">
-                <Badge variant="outline" className="border-primary/30 text-primary">
-                  Starting Soon
-                </Badge>
+            ) : (
+              <div className="text-center py-4">
+                <CalendarIcon className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+                <p className="text-muted-foreground">No upcoming classes</p>
+                <p className="text-sm text-muted-foreground mt-1">Enroll in courses to see your schedule</p>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -355,7 +407,13 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 stagger-children">
-              {courses.map((course) => (
+              {displayCourses.length === 0 ? (
+                <div className="col-span-2 text-center py-12 bg-secondary/30 rounded-lg">
+                  <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                  <p className="text-muted-foreground">No courses enrolled yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">Use Demo mode to see sample courses</p>
+                </div>
+              ) : displayCourses.map((course) => (
                 <CourseCard
                   key={course.id}
                   courseId={course.id}
@@ -382,14 +440,15 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
 
             <Card className="glass-card border-0">
               <CardContent className="p-6">
-                {mockUpcomingDeadlines.length === 0 ? (
+                {displayDeadlines.length === 0 ? (
                   <div className="text-center py-8">
                     <CheckCircle2 className="w-12 h-12 text-success mx-auto mb-3" />
                     <p className="text-muted-foreground">No upcoming deadlines</p>
+                    {!isDemo && <p className="text-xs text-muted-foreground mt-1">Use Demo mode to see sample data</p>}
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {mockUpcomingDeadlines.map((assignment) => {
+                    {displayDeadlines.map((assignment) => {
                       const daysUntil = getDaysUntil(assignment.dueDate);
                       const isOverdue = daysUntil < 0;
                       const isDueSoon = daysUntil <= 2 && daysUntil >= 0;
@@ -451,14 +510,15 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
 
             <Card className="glass-card border-0">
               <CardContent className="p-6">
-                {mockRecentGrades.length === 0 ? (
+                {displayGrades.length === 0 ? (
                   <div className="text-center py-8">
                     <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                     <p className="text-muted-foreground">No grades yet</p>
+                    {!isDemo && <p className="text-xs text-muted-foreground mt-1">Use Demo mode to see sample data</p>}
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {mockRecentGrades.map((grade) => {
+                    {displayGrades.map((grade) => {
                       const percentage = Math.round((grade.score / grade.maxScore) * 100);
                       const isExcellent = percentage >= 90;
                       const isGood = percentage >= 75 && percentage < 90;
@@ -620,6 +680,18 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
 
   const renderLecturerDashboard = () => (
     <>
+      {/* Real Auth Mode Banner */}
+      {!isDemo && (
+        <Alert className="mb-6 border-info/50 bg-info/5">
+          <Database className="h-4 w-4 text-info" />
+          <AlertTitle className="text-info">Real Backend Connected</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            You're logged in with a real account! This is a fresh account with no courses or students yet.
+            For the full app experience with sample data, logout and use "Try Demo" instead.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Quick Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="glass-card border-0">
@@ -679,7 +751,13 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {mockCoursesTaught.map((course) => {
+              {displayCoursesTaught.length === 0 ? (
+                <div className="col-span-2 text-center py-12 bg-secondary/30 rounded-lg">
+                  <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                  <p className="text-muted-foreground">No courses created yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">Use Demo mode to see sample courses</p>
+                </div>
+              ) : displayCoursesTaught.map((course) => {
                 const matchingCourseData = courses.find(c => c.id === course.id);
                 return (
                   <Card key={course.id} className="glass-card border-0 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleCourseClick(course.id)}>
@@ -738,15 +816,15 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
 
             <Card className="glass-card border-0">
               <CardContent className="p-6">
-                {mockLecturerSubmissions.filter(s => s.status === "pending").length === 0 ? (
+                {displayLecturerSubmissions.filter(s => s.status === "pending").length === 0 ? (
                   <div className="text-center py-8">
                     <CheckCircle2 className="w-12 h-12 text-success mx-auto mb-3" />
                     <p className="text-muted-foreground">All caught up!</p>
-                    <p className="text-sm text-muted-foreground mt-1">No pending submissions to grade</p>
+                    <p className="text-sm text-muted-foreground mt-1">{isDemo ? "No pending submissions to grade" : "No submissions yet. Use Demo mode to see sample data."}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {mockLecturerSubmissions
+                    {displayLecturerSubmissions
                       .filter(s => s.status === "pending")
                       .sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime())
                       .slice(0, 5)
@@ -831,7 +909,7 @@ const Dashboard = ({ userRole, onLogout }: DashboardProps) => {
         {/* Dashboard Content */}
         <div className="p-6 space-y-8">
           {/* Time-based Greeting */}
-          <TimeGreeting userName={userRole === "student" ? "Alex" : "Dr. Morgan"} />
+          <TimeGreeting userName={getDisplayName()} />
 
           {/* Role-based Dashboard Content */}
           {userRole === "student" ? renderStudentDashboard() : renderLecturerDashboard()}

@@ -12,9 +12,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { mockPersonalGoals, type PersonalGoal } from "@/data/mockData";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Goals() {
-  const [goals, setGoals] = useState<PersonalGoal[]>(mockPersonalGoals);
+  const { isDemo } = useAuth();
+  
+  // Show mock goals only in demo mode
+  const [goals, setGoals] = useState<PersonalGoal[]>(isDemo ? mockPersonalGoals : []);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<PersonalGoal | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>("all");

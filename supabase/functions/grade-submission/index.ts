@@ -1,6 +1,6 @@
 // ============================================
 // AI Grading Edge Function
-// Sends student submission to OpenAI for grading
+// Sends student submission to Groq for grading (FREE LLM)
 // ============================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -60,10 +60,10 @@ serve(async (req) => {
       throw new Error("Missing required fields: studentAnswer and assignmentContext");
     }
 
-    // Get OpenAI API key from environment
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openaiApiKey) {
-      throw new Error("OpenAI API key not configured");
+    // Get Groq API key from environment (FREE LLM!)
+    const groqApiKey = Deno.env.get("GROQ_API_KEY");
+    if (!groqApiKey) {
+      throw new Error("Groq API key not configured");
     }
 
     // Create the grading prompt
@@ -77,7 +77,9 @@ Evaluate the submission and respond with a JSON object containing:
 - "score": A number from 0 to ${maxScore} representing the grade
 - "feedback": A constructive feedback paragraph (2-3 sentences) explaining the score and how to improve
 
-Be fair but rigorous. Acknowledge what the student did well, then explain what could be improved.`;
+Be fair but rigorous. Acknowledge what the student did well, then explain what could be improved.
+
+IMPORTANT: Respond ONLY with valid JSON, no additional text.`;
 
     const userPrompt = `## Assignment: ${assignmentTitle}
 
@@ -89,15 +91,15 @@ ${studentAnswer}
 
 Please grade this submission and provide feedback in JSON format.`;
 
-    // Call OpenAI API
-    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Call Groq API (FREE and fast!)
+    const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${openaiApiKey}`,
+        "Authorization": `Bearer ${groqApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile", // Free, fast, and capable
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -108,13 +110,13 @@ Please grade this submission and provide feedback in JSON format.`;
       }),
     });
 
-    if (!openaiResponse.ok) {
-      const errorData = await openaiResponse.text();
-      console.error("OpenAI API error:", errorData);
+    if (!groqResponse.ok) {
+      const errorData = await groqResponse.text();
+      console.error("Groq API error:", errorData);
       throw new Error("Failed to get AI grading response");
     }
 
-    const aiData = await openaiResponse.json();
+    const aiData = await groqResponse.json();
     const aiContent = aiData.choices[0].message.content;
     
     // Parse the AI response
@@ -142,7 +144,7 @@ Please grade this submission and provide feedback in JSON format.`;
         rubric_context: assignmentContext.substring(0, 2000),
         ai_score: score,
         ai_feedback: feedback,
-        model_used: "gpt-4o-mini",
+        model_used: "llama-3.3-70b-versatile", // Groq model
         processing_time_ms: processingTimeMs,
       });
 

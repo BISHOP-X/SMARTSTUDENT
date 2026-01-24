@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Sparkles, ArrowRight, GraduationCap, BookOpen } from "lucide-react";
+import { Eye, EyeOff, Sparkles, ArrowRight, GraduationCap, BookOpen, Play, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-auth.jpg";
 
 interface AuthFormProps {
-  onLogin: (role: "student" | "lecturer") => void;
+  onLogin: (role: "student" | "lecturer", isDemo?: boolean) => void;
 }
 
 const AuthForm = ({ onLogin }: AuthFormProps) => {
@@ -18,10 +20,109 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
   const [phone, setPhone] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [role, setRole] = useState<"student" | "lecturer">("student");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleRealAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(role);
+    setIsLoading(true);
+
+    try {
+      if (isSignUp) {
+        // Sign up with Supabase
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+              role: role,
+              phone: phone,
+              parent_phone: parentPhone,
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        // Check if email confirmation is required
+        if (data.user && !data.session) {
+          // Email confirmation required
+          toast({
+            title: "Check your email!",
+            description: "We've sent you a confirmation link. Please verify your email to continue.",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        if (data.user) {
+          // Create profile record with phone numbers
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error: profileError } = await (supabase.from('profiles') as any).upsert({
+            id: data.user.id,
+            email: email,
+            full_name: name,
+            role: role,
+            phone: phone || null,
+            parent_phone: parentPhone || null,
+          });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+            // Don't block login if profile creation fails
+          }
+
+          toast({
+            title: "Account created!",
+            description: "You've been signed up and logged in.",
+          });
+          setIsLoading(false);
+          onLogin(role, false); // false = not demo mode
+        }
+      } else {
+        // Sign in with Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          // Get the user's role from their profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
+
+          const userRole = (profile?.role as "student" | "lecturer") || role;
+          
+          toast({
+            title: "Welcome back!",
+            description: "You've been signed in successfully.",
+          });
+          onLogin(userRole, false); // false = not demo mode
+        }
+      }
+    } catch (error: any) {
+      toast({
+        title: "Authentication Error",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = () => {
+    toast({
+      title: "Demo Mode Activated",
+      description: `Exploring as ${role}. Sample data loaded for full experience.`,
+    });
+    onLogin(role, true); // true = demo mode
   };
 
   return (
@@ -139,7 +240,7 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleRealAuth} className="space-y-4">
             {isSignUp && (
               <div className="space-y-2 animate-fade-in">
                 <Label htmlFor="name" className="text-foreground text-sm">Full Name</Label>
@@ -233,11 +334,50 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
               </div>
             )}
 
-            <Button type="submit" variant="hero" size="default" className="w-full group mt-6">
-              {isSignUp ? "Create Account" : "Sign In"}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <Button 
+              type="submit" 
+              variant="hero" 
+              size="default" 
+              className="w-full group mt-6"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {isSignUp ? "Creating Account..." : "Signing In..."}
+                </>
+              ) : (
+                <>
+                  {isSignUp ? "Create Account" : "Sign In"}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </Button>
           </form>
+
+          {/* Demo Mode Button */}
+          <div className="mt-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or explore with sample data</span>
+              </div>
+            </div>
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="default"
+              className="w-full mt-4 group border-primary/30 hover:border-primary hover:bg-primary/5"
+              onClick={handleDemoLogin}
+            >
+              <Play className="w-4 h-4 mr-2 text-primary" />
+              Try Demo as {role === "student" ? "Student" : "Lecturer"}
+              <span className="ml-2 text-xs text-muted-foreground">(Full Experience)</span>
+            </Button>
+          </div>
 
           <div className="mt-6 pt-4 border-t border-border">
             <p className="text-center text-muted-foreground">

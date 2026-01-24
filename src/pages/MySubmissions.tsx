@@ -23,6 +23,7 @@ import {
   Eye
 } from "lucide-react";
 import { mockStudentSubmissions, getTimeAgo, type Submission } from "@/data/mockData";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MySubmissionsProps {
   userRole: "student" | "lecturer";
@@ -36,21 +37,27 @@ type StatusFilter = "all" | "pending" | "graded";
 const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
   const [activeTab, setActiveTab] = useState("submissions");
   const navigate = useNavigate();
+  const { isDemo } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [courseFilter, setCourseFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortField, setSortField] = useState<SortField>("submittedAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
+  // Show mock data only in demo mode - memoized to prevent dependency issues
+  const submissions = useMemo(() => {
+    return isDemo ? mockStudentSubmissions : [];
+  }, [isDemo]);
+
   // Get unique course names for filter dropdown
   const uniqueCourses = useMemo(() => {
-    const courses = [...new Set(mockStudentSubmissions.map(s => s.courseName))];
+    const courses = [...new Set(submissions.map(s => s.courseName))];
     return courses.sort();
-  }, []);
+  }, [submissions]);
 
   // Filter and sort submissions
   const filteredAndSortedSubmissions = useMemo(() => {
-    let filtered = [...mockStudentSubmissions];
+    let filtered = [...submissions];
 
     // Apply search filter
     if (searchQuery.trim()) {
@@ -90,14 +97,14 @@ const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
     });
 
     return filtered;
-  }, [searchQuery, courseFilter, statusFilter, sortField, sortOrder]);
+  }, [submissions, searchQuery, courseFilter, statusFilter, sortField, sortOrder]);
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const total = mockStudentSubmissions.length;
-    const graded = mockStudentSubmissions.filter(s => s.status === "graded").length;
+    const total = submissions.length;
+    const graded = submissions.filter(s => s.status === "graded").length;
     const pending = total - graded;
-    const gradedSubmissions = mockStudentSubmissions.filter(s => s.status === "graded");
+    const gradedSubmissions = submissions.filter(s => s.status === "graded");
     const averageScore = gradedSubmissions.length > 0
       ? Math.round(
           gradedSubmissions.reduce((acc, s) => {
@@ -108,7 +115,7 @@ const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
       : 0;
 
     return { total, graded, pending, averageScore };
-  }, []);
+  }, [submissions]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -294,6 +301,8 @@ const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
                   <p className="text-muted-foreground">
                     {searchQuery || courseFilter !== "all" || statusFilter !== "all"
                       ? "Try adjusting your filters"
+                      : !isDemo
+                      ? "You're using a real account. Use Demo mode to see sample submissions."
                       : "You haven't submitted any assignments yet"}
                   </p>
                 </div>

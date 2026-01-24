@@ -24,6 +24,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { mockLecturerSubmissions, getTimeAgo, type Submission } from "@/data/mockData";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface GradingQueueProps {
   userRole: "student" | "lecturer";
@@ -36,6 +37,7 @@ type SortOrder = "asc" | "desc";
 const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
   const [activeTab, setActiveTab] = useState("grading");
   const navigate = useNavigate();
+  const { isDemo } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [courseFilter, setCourseFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("submittedAt");
@@ -43,10 +45,15 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [isGradingPanelOpen, setIsGradingPanelOpen] = useState(false);
 
+  // Show mock data only in demo mode - memoized to prevent dependency issues
+  const allSubmissions = useMemo(() => {
+    return isDemo ? mockLecturerSubmissions : [];
+  }, [isDemo]);
+
   // Get only pending submissions
   const pendingSubmissions = useMemo(() => {
-    return mockLecturerSubmissions.filter(s => s.status === "pending");
-  }, []);
+    return allSubmissions.filter(s => s.status === "pending");
+  }, [allSubmissions]);
 
   // Get unique course names for filter dropdown
   const uniqueCourses = useMemo(() => {
@@ -297,7 +304,15 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
               {/* Table Body */}
               {filteredAndSortedSubmissions.length === 0 ? (
                 <div className="text-center py-16">
-                  {stats.totalPending === 0 ? (
+                  {!isDemo ? (
+                    <>
+                      <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">No submissions yet</h3>
+                      <p className="text-muted-foreground">
+                        You're using a real account. Use Demo mode to see sample submissions to grade.
+                      </p>
+                    </>
+                  ) : stats.totalPending === 0 ? (
                     <>
                       <CheckCircle2 className="w-16 h-16 text-success mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-foreground mb-2">All Caught Up!</h3>

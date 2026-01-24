@@ -32,8 +32,6 @@ pop3_port = 54326
 [storage]
 # Enable local storage emulation
 enabled = true
-# Port for storage API
-port = 54327
 
 [auth]
 # Site URL for authentication redirects

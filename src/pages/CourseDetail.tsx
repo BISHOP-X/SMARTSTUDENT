@@ -25,6 +25,7 @@ import {
 import Navigation from "@/components/Navigation";
 import MaterialUpload, { UploadedMaterial } from "@/components/MaterialUpload";
 import AssignmentCreationForm, { AssignmentFormData } from "@/components/AssignmentCreationForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Import course images
 import courseBiology from "@/assets/course-biology.jpg";
@@ -100,6 +101,7 @@ const mockCourses = {
 const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isDemo } = useAuth();
   const [activeTab, setActiveTab] = useState("courses");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
@@ -116,11 +118,11 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
     // After successful creation, refresh assignments list
   };
 
-  // Get course from mock database
+  // Get course from mock database - only in demo mode
   const courseId = Number(id);
-  const courseData = mockCourses[courseId as keyof typeof mockCourses];
+  const courseData = isDemo ? mockCourses[courseId as keyof typeof mockCourses] : null;
 
-  // If course not found, redirect to courses page
+  // If course not found or not in demo mode, redirect to courses page
   if (!courseData) {
     navigate("/courses");
     return null;

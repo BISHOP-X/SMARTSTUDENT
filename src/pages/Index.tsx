@@ -4,11 +4,11 @@ import AuthForm from "@/components/AuthForm";
 import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
-  const { isAuthenticated, userRole, login, logout } = useAuth();
+  const { isAuthenticated, userRole, isDemo, login, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (role: "student" | "lecturer") => {
-    login(role);
+  const handleLogin = (role: "student" | "lecturer", isDemoMode: boolean = true) => {
+    login(role, isDemoMode);
   };
 
   const handleLogout = () => {
@@ -17,7 +17,7 @@ const Index = () => {
   };
 
   if (isAuthenticated && userRole) {
-    return <Dashboard userRole={userRole} onLogout={handleLogout} />;
+    return <Dashboard userRole={userRole} onLogout={handleLogout} isDemo={isDemo} />;
   }
 
   return <AuthForm onLogin={handleLogin} />;

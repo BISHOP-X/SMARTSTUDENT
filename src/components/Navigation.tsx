@@ -22,14 +22,32 @@ import { useAuth } from "@/contexts/AuthContext";
 interface NavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  onLogout: () => void;
+  onLogout?: () => void; // Made optional - we'll use AuthContext directly
 }
 
-const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
+const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { userRole } = useAuth();
+  const { userRole, isDemo, user, logout } = useAuth();
+
+  // Handle logout - always works regardless of which page
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  // Get display name based on auth mode
+  const getDisplayName = () => {
+    if (isDemo) {
+      return userRole === "student" ? "Alex Morgan (Demo)" : "Dr. Morgan (Demo)";
+    }
+    // Real auth - show email or "User"
+    if (user?.email) {
+      return user.email.split('@')[0]; // Show first part of email
+    }
+    return userRole === "student" ? "Student" : "Lecturer";
+  };
 
   // Define navigation items based on user role
   const studentNavItems = [
@@ -90,7 +108,7 @@ const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
       </div>
 
       {/* Navigation Items */}
-      <nav className="flex-1 px-3 py-6 space-y-1">
+      <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || activeTab === item.id;
@@ -116,47 +134,41 @@ const Navigation = ({ activeTab, onTabChange, onLogout }: NavigationProps) => {
         })}
       </nav>
 
-      {/* Bottom Section */}
-      <div className="p-4 border-t border-sidebar-border space-y-3">
-        <button
-          onClick={() => {
-            onTabChange('settings');
-            navigate('/settings');
-          }}
+      {/* Bottom Section - Fixed at bottom */}
+      <div className="p-4 border-t border-sidebar-border space-y-2 shrink-0">
+        {/* Logout Button - Always Visible */}
+        <Button 
+          variant="destructive" 
+          onClick={handleLogout} 
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
-            isCollapsed && "justify-center px-0"
+            "w-full flex items-center gap-2 justify-center",
+            isCollapsed && "px-2"
           )}
         >
-          <Settings className="w-5 h-5" />
-          {!isCollapsed && <span className="font-medium">Settings</span>}
-        </button>
+          <LogOut className="w-4 h-4" />
+          {!isCollapsed && <span>Logout</span>}
+        </Button>
 
         {/* User Profile */}
         <div className={cn(
-          "flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent",
+          "flex items-center gap-3 p-2 rounded-lg bg-sidebar-accent",
           isCollapsed && "justify-center p-2"
         )}>
-          <Avatar className="w-9 h-9 shrink-0">
+          <Avatar className="w-8 h-8 shrink-0">
             <AvatarImage src="" />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              <User className="w-4 h-4" />
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+              <User className="w-3 h-3" />
             </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
-                {userRole === "student" ? "Alex Morgan" : "Dr. Morgan"}
+                {getDisplayName()}
               </p>
               <p className="text-xs text-muted-foreground truncate">
                 {userRole === "student" ? "Student" : "Lecturer"}
               </p>
             </div>
-          )}
-          {!isCollapsed && (
-            <Button variant="ghost" size="icon" onClick={onLogout} className="shrink-0">
-              <LogOut className="w-4 h-4" />
-            </Button>
           )}
         </div>
       </div>

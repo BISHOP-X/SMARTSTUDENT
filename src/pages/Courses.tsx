@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import CourseCreationForm, { CourseFormData } from "@/components/CourseCreationForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Import course images
 import courseBiology from "@/assets/course-biology.jpg";
@@ -27,6 +28,7 @@ interface CoursesPageProps {
 
 const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
   const navigate = useNavigate();
+  const { isDemo } = useAuth();
   const [activeTab] = useState("courses");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -42,8 +44,8 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
     navigate(`/courses/${courseId}`);
   };
 
-  // Mock data - will be replaced with API calls
-  const courses = [
+  // Mock data - only shown in demo mode
+  const mockCourses = [
     {
       id: 1,
       title: "Molecular Biology",
@@ -97,6 +99,9 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
       status: "active",
     },
   ];
+
+  // Show mock data only in demo mode, empty array for real auth
+  const courses = isDemo ? mockCourses : [];
 
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
@@ -170,11 +175,13 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
               <p className="text-muted-foreground mb-6">
                 {searchQuery
                   ? "Try adjusting your search or filters"
+                  : !isDemo
+                  ? "You're using a real account. Use Demo mode to see sample courses."
                   : userRole === "student"
                   ? "Browse the course catalog to enroll in your first course"
                   : "Create your first course to get started"}
               </p>
-              {userRole === "student" && (
+              {userRole === "student" && isDemo && (
                 <Button variant="hero">Browse Courses</Button>
               )}
             </div>

@@ -13,7 +13,7 @@ import Navigation from "@/components/Navigation";
 import { getCalendarEvents, getEventsForDate, type CalendarEvent } from "@/data/mockData";
 
 export default function Calendar() {
-  const { userRole } = useAuth();
+  const { userRole, isDemo } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -26,8 +26,8 @@ export default function Calendar() {
     time: "12:00",
   });
 
-  // Get all events for the current month
-  const allEvents = getCalendarEvents(userRole);
+  // Get all events for the current month - only in demo mode
+  const allEvents = isDemo ? getCalendarEvents(userRole) : [];
 
   // Calendar helpers
   const getDaysInMonth = (date: Date) => {

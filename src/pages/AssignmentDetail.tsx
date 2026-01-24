@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -9,13 +9,19 @@ import {
   CheckCircle2,
   Clock,
   User,
+  AlertCircle,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Navigation from "@/components/Navigation";
 import GradingPanel from "@/components/GradingPanel";
+import { useAuth } from "@/contexts/AuthContext";
+import { gradeSubmission, canUseAI } from "@/lib/ai-service";
 
 interface AssignmentDetailProps {
   userRole: "student" | "lecturer";
@@ -92,10 +98,18 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
   const { courseId, assignmentId } = useParams();
   const navigate = useNavigate();
   const [activeTab] = useState("courses");
+  const { isDemo } = useAuth();
 
   // Student submission state
   const [submissionText, setSubmissionText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGrading, setIsGrading] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<{
+    score: number;
+    feedback: string;
+    isRealAI: boolean;
+  } | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   // Lecturer grading state
   const [selectedSubmission, setSelectedSubmission] = useState<number | null>(null);
@@ -112,20 +126,59 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
     if (!submissionText.trim()) return;
 
     setIsSubmitting(true);
-    console.log("Submitting assignment:", {
-      assignmentId,
-      content: submissionText,
-    });
+    setSubmissionError(null);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Check if user can use real AI
+      const aiCheck = await canUseAI();
+      
+      if (!isDemo && aiCheck.canUse) {
+        // Use real AI grading
+        setIsGrading(true);
+        
+        const result = await gradeSubmission({
+          assignmentTitle: assignment.title,
+          assignmentContext: `${assignment.description}\n\nGrading Rubric: ${assignment.gradingRubric}`,
+          studentAnswer: submissionText,
+          maxScore: assignment.maxScore,
+        });
+        
+        setIsGrading(false);
 
-    // TODO: API call to submit assignment
-    // After submission, AI grading will be triggered automatically
-    setIsSubmitting(false);
+        if (result.error || result.score === null) {
+          setSubmissionError(result.error || 'Failed to grade submission');
+          setIsSubmitting(false);
+          return;
+        }
+
+        setSubmissionResult({
+          score: result.score,
+          feedback: result.feedback || 'No feedback provided',
+          isRealAI: true,
+        });
+      } else {
+        // Demo mode - simulate grading
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        
+        // Generate mock grade based on answer length
+        const wordCount = submissionText.split(/\s+/).length;
+        const mockScore = Math.min(
+          assignment.maxScore,
+          Math.round((wordCount / 50) * 30 + Math.random() * 40 + 30)
+        );
+        
+        setSubmissionResult({
+          score: mockScore,
+          feedback: "This is a demo grade. Sign in with a real account to get AI-powered grading with detailed feedback on your submission.",
+          isRealAI: false,
+        });
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      setSubmissionError(error instanceof Error ? error.message : 'An error occurred');
+    }
     
-    // Refresh page to show submitted work
-    window.location.reload();
+    setIsSubmitting(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -210,7 +263,17 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
           {/* STUDENT VIEW */}
           {userRole === "student" && (
             <>
-              {hasSubmitted ? (
+              {/* AI Mode Indicator */}
+              <Alert className={isDemo ? "bg-yellow-500/10 border-yellow-500/30" : "bg-green-500/10 border-green-500/30"}>
+                <Sparkles className={`w-4 h-4 ${isDemo ? "text-yellow-400" : "text-green-400"}`} />
+                <AlertDescription className={isDemo ? "text-yellow-200" : "text-green-200"}>
+                  {isDemo 
+                    ? "Demo Mode: Using simulated AI grading. Sign in with a real account for actual AI-powered feedback."
+                    : "AI Grading Active: Your submission will be graded by real AI powered by Groq's llama-3.3-70b-versatile model."}
+                </AlertDescription>
+              </Alert>
+
+              {hasSubmitted || submissionResult ? (
                 /* Show submitted work and grade */
                 <div className="space-y-6">
                   {/* Submission Status */}
@@ -218,64 +281,74 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-xl font-semibold text-foreground">Your Submission</h2>
                       <Badge
-                        variant={studentSubmission.status === "graded" ? "default" : "secondary"}
+                        variant="default"
                         className="flex items-center gap-2"
                       >
-                        {studentSubmission.status === "graded" ? (
-                          <>
-                            <CheckCircle2 className="w-4 h-4" />
-                            Graded
-                          </>
-                        ) : (
-                          <>
-                            <Clock className="w-4 h-4" />
-                            Pending
-                          </>
-                        )}
+                        <CheckCircle2 className="w-4 h-4" />
+                        Graded
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Submitted on {formatDate(studentSubmission.submittedAt)}
+                      {studentSubmission ? `Submitted on ${formatDate(studentSubmission.submittedAt)}` : "Just submitted"}
                     </p>
                     <div className="p-4 rounded-lg bg-secondary/30 border border-border">
                       <p className="text-foreground whitespace-pre-wrap">
-                        {studentSubmission.contentText}
+                        {studentSubmission?.contentText || submissionText}
                       </p>
                     </div>
                   </div>
 
                   {/* Grade and Feedback */}
-                  {studentSubmission.status === "graded" && (
-                    <div className="glass-card p-6">
-                      <h2 className="text-xl font-semibold text-foreground mb-4">Grade & Feedback</h2>
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="text-center">
-                          <div className="text-4xl font-bold text-primary">
-                            {studentSubmission.aiScore}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            out of {assignment.maxScore}
-                          </div>
+                  <div className="glass-card p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <h2 className="text-xl font-semibold text-foreground">Grade & Feedback</h2>
+                      {submissionResult && (
+                        <Badge variant={submissionResult.isRealAI ? "default" : "secondary"}>
+                          {submissionResult.isRealAI ? "Real AI" : "Demo"}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="text-center">
+                        <div className="text-4xl font-bold text-primary">
+                          {submissionResult?.score ?? studentSubmission?.aiScore}
                         </div>
-                        <div className="h-12 w-px bg-border" />
-                        <div>
-                          <div className="text-sm text-muted-foreground mb-1">Percentage</div>
-                          <div className="text-2xl font-semibold">
-                            {Math.round((studentSubmission.aiScore / assignment.maxScore) * 100)}%
-                          </div>
+                        <div className="text-sm text-muted-foreground">
+                          out of {assignment.maxScore}
                         </div>
                       </div>
-                      <div className="p-4 rounded-lg bg-info/10 border border-info/20">
-                        <h3 className="font-medium text-foreground mb-2">AI Feedback</h3>
-                        <p className="text-sm text-foreground/90">{studentSubmission.aiFeedback}</p>
+                      <div className="h-12 w-px bg-border" />
+                      <div>
+                        <div className="text-sm text-muted-foreground mb-1">Percentage</div>
+                        <div className="text-2xl font-semibold">
+                          {Math.round(((submissionResult?.score ?? studentSubmission?.aiScore ?? 0) / assignment.maxScore) * 100)}%
+                        </div>
                       </div>
                     </div>
-                  )}
+                    <div className="p-4 rounded-lg bg-info/10 border border-info/20">
+                      <h3 className="font-medium text-foreground mb-2">
+                        {submissionResult?.isRealAI ? "AI Feedback (Groq)" : "AI Feedback"}
+                      </h3>
+                      <p className="text-sm text-foreground/90">
+                        {submissionResult?.feedback ?? studentSubmission?.aiFeedback}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 /* Show submission form */
                 <div className="glass-card p-6">
                   <h2 className="text-xl font-semibold text-foreground mb-4">Submit Your Work</h2>
+                  
+                  {submissionError && (
+                    <Alert className="mb-4 bg-red-500/10 border-red-500/30">
+                      <AlertCircle className="w-4 h-4 text-red-400" />
+                      <AlertDescription className="text-red-200">
+                        {submissionError}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -294,6 +367,7 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                         value={submissionText}
                         onChange={(e) => setSubmissionText(e.target.value)}
                         className="resize-none"
+                        disabled={isSubmitting}
                       />
                       <p className="text-xs text-muted-foreground">
                         {submissionText.length} characters
@@ -320,10 +394,19 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                         variant="hero"
                         disabled={!submissionText.trim() || isSubmitting}
                       >
-                        {isSubmitting ? "Submitting..." : "Submit Assignment"}
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            {isGrading ? "AI is grading..." : "Submitting..."}
+                          </>
+                        ) : (
+                          "Submit Assignment"
+                        )}
                       </Button>
                       <p className="text-xs text-muted-foreground">
-                        You'll receive AI feedback within seconds
+                        {isDemo 
+                          ? "Demo mode - simulated grading"
+                          : "You'll receive real AI feedback within seconds"}
                       </p>
                     </div>
                   </form>

@@ -30,13 +30,14 @@ import {
 export default function CourseAnalytics() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, isDemo } = useAuth();
   const courseId = parseInt(id || "0");
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
 
-  const analytics = mockCourseAnalytics[courseId];
+  // Only show analytics in demo mode
+  const analytics = isDemo ? mockCourseAnalytics[courseId] : null;
 
   const sendFeedback = () => {
     // TODO: API call to send feedback/advice to student

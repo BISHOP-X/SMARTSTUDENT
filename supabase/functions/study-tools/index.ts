@@ -1,6 +1,6 @@
 // ============================================
 // AI Study Tools Edge Function
-// Generates notes, summaries, and questions from content
+// Generates notes, summaries, and questions using Groq (FREE LLM)
 // ============================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -69,10 +69,10 @@ serve(async (req) => {
       throw new Error("Missing required fields: type and content");
     }
 
-    // Get OpenAI API key from environment
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openaiApiKey) {
-      throw new Error("OpenAI API key not configured");
+    // Get Groq API key from environment (FREE LLM!)
+    const groqApiKey = Deno.env.get("GROQ_API_KEY");
+    if (!groqApiKey) {
+      throw new Error("Groq API key not configured");
     }
 
     // Build the appropriate prompt based on type
@@ -96,15 +96,15 @@ serve(async (req) => {
         throw new Error("Invalid generation type");
     }
 
-    // Call OpenAI API
-    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Call Groq API (FREE and fast!)
+    const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${openaiApiKey}`,
+        "Authorization": `Bearer ${groqApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile", // Free, fast, and capable
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -114,13 +114,13 @@ serve(async (req) => {
       }),
     });
 
-    if (!openaiResponse.ok) {
-      const errorData = await openaiResponse.text();
-      console.error("OpenAI API error:", errorData);
+    if (!groqResponse.ok) {
+      const errorData = await groqResponse.text();
+      console.error("Groq API error:", errorData);
       throw new Error("Failed to generate study content");
     }
 
-    const aiData = await openaiResponse.json();
+    const aiData = await groqResponse.json();
     const generatedContent = aiData.choices[0].message.content;
 
     return new Response(

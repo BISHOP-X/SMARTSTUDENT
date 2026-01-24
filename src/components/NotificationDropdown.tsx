@@ -21,12 +21,15 @@ import {
 import { useNavigate } from "react-router-dom";
 
 export default function NotificationDropdown() {
-  const { userRole } = useAuth();
+  const { userRole, isDemo } = useAuth();
   const navigate = useNavigate();
   
-  const [notifications, setNotifications] = useState<Notification[]>(
-    userRole === "lecturer" ? mockLecturerNotifications : mockNotifications
-  );
+  // Show mock notifications only in demo mode
+  const initialNotifications = isDemo 
+    ? (userRole === "lecturer" ? mockLecturerNotifications : mockNotifications)
+    : [];
+  
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
