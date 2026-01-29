@@ -45,24 +45,29 @@ serve(async (req) => {
     // Get the authorization header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Missing authorization header. Please log in." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      throw new Error("Missing authorization header");
     }
 
     // Create Supabase client with user's auth
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
+      {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false },
+      }
     );
 
-    // Try to verify user is authenticated (optional for now - allows demo mode)
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Validate JWT token and get user - pass token explicitly!
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
     
-    // Log authentication attempt (for debugging)
-    console.log("Auth attempt:", { hasUser: !!user, userError: userError?.message });
+    if (userError || !user) {
+      throw new Error("Unauthorized");
+    }
+    
+    console.log("Authenticated user:", user.id, user.email);
 
     // Parse the request body
     const { type, content, settings }: StudyToolRequest = await req.json();
@@ -140,14 +145,17 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Study tools error:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    const isAuthError = errorMessage === "Unauthorized" || errorMessage === "Missing authorization header";
+    
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || "An error occurred",
+        error: errorMessage,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: error.message === "Unauthorized" ? 401 : 500,
+        status: isAuthError ? 401 : 400,
       }
     );
   }

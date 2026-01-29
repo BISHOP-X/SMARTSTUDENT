@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,6 +12,8 @@ import {
   AlertCircle,
   Sparkles,
   Loader2,
+  X,
+  File,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +24,8 @@ import Navigation from "@/components/Navigation";
 import GradingPanel from "@/components/GradingPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { gradeSubmission, canUseAI } from "@/lib/ai-service";
+import { uploadSubmission } from "@/lib/file-upload-service";
+import { toast } from "sonner";
 
 interface AssignmentDetailProps {
   userRole: "student" | "lecturer";
@@ -39,7 +43,7 @@ const mockAssignment = {
   courseId: 1,
   courseName: "Molecular Biology",
   courseCode: "BIO301",
-  allowFileUpload: false,
+  allowFileUpload: true, // Enable file uploads
   gradingRubric:
     "A complete answer should explain DNA replication in 3 steps: initiation, elongation, and termination. Must mention helicase, DNA polymerase, and leading/lagging strands. Bonus points for discussing Okazaki fragments and the proofreading mechanism.",
 };
@@ -99,6 +103,7 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
   const navigate = useNavigate();
   const [activeTab] = useState("courses");
   const { isDemo } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Student submission state
   const [submissionText, setSubmissionText] = useState("");
@@ -110,6 +115,11 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
     isRealAI: boolean;
   } | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  
+  // File upload state
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
 
   // Lecturer grading state
   const [selectedSubmission, setSelectedSubmission] = useState<number | null>(null);
@@ -122,13 +132,78 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
     navigate(`/courses/${courseId}`);
   };
 
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload PDF, DOC, DOCX, or TXT files.');
+      return;
+    }
+
+    // Max 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 10MB.');
+      return;
+    }
+
+    setUploadedFile(file);
+    toast.success(`File selected: ${file.name}`);
+  };
+
+  // Remove selected file
+  const handleRemoveFile = () => {
+    setUploadedFile(null);
+    setUploadedFileUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Upload file to Supabase
+  const handleUploadFile = async (): Promise<string | null> => {
+    if (!uploadedFile || isDemo) return null;
+
+    setIsUploading(true);
+    const result = await uploadSubmission(uploadedFile, assignmentId || '1');
+    setIsUploading(false);
+
+    if (result.success && result.url) {
+      setUploadedFileUrl(result.url);
+      return result.url;
+    } else {
+      toast.error(result.error || 'Failed to upload file');
+      return null;
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!submissionText.trim()) return;
+    // Require either text or file
+    if (!submissionText.trim() && !uploadedFile) {
+      toast.error('Please enter your answer or upload a file');
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmissionError(null);
 
     try {
+      // Upload file if present (only for real users)
+      let fileUrl: string | null = null;
+      if (uploadedFile && !isDemo) {
+        fileUrl = await handleUploadFile();
+        // Continue even if file upload fails - we still have text
+      }
+
       // Check if user can use real AI
       const aiCheck = await canUseAI();
       
@@ -377,14 +452,56 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                     {assignment.allowFileUpload && (
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">
-                          Or Upload File
+                          Or Upload File (PDF, DOC, DOCX, TXT)
                         </Label>
-                        <div className="flex items-center gap-2 p-4 rounded-lg border-2 border-dashed border-border hover:border-primary transition-colors cursor-pointer">
-                          <Upload className="w-5 h-5 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">
-                            Click to upload or drag and drop
-                          </span>
-                        </div>
+                        
+                        {/* Hidden file input */}
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileSelect}
+                          accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                          className="hidden"
+                          disabled={isSubmitting || isUploading}
+                        />
+                        
+                        {uploadedFile ? (
+                          /* Show selected file */
+                          <div className="flex items-center justify-between p-4 rounded-lg border border-primary/30 bg-primary/5">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-lg bg-primary/10">
+                                <File className="w-5 h-5 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{uploadedFile.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRemoveFile}
+                              disabled={isSubmitting || isUploading}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          /* File upload drop zone */
+                          <div 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex items-center gap-2 p-4 rounded-lg border-2 border-dashed border-border hover:border-primary transition-colors cursor-pointer"
+                          >
+                            <Upload className="w-5 h-5 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              Click to upload or drag and drop (max 10MB)
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -392,12 +509,12 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                       <Button
                         type="submit"
                         variant="hero"
-                        disabled={!submissionText.trim() || isSubmitting}
+                        disabled={(!submissionText.trim() && !uploadedFile) || isSubmitting || isUploading}
                       >
-                        {isSubmitting ? (
+                        {isSubmitting || isUploading ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {isGrading ? "AI is grading..." : "Submitting..."}
+                            {isUploading ? "Uploading file..." : isGrading ? "AI is grading..." : "Submitting..."}
                           </>
                         ) : (
                           "Submit Assignment"

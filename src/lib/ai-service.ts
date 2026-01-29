@@ -50,24 +50,7 @@ export interface GradingResponse {
   error?: string;
 }
 
-/**
- * Get the Supabase Edge Function URL
- */
-const getEdgeFunctionUrl = (functionName: string): string => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xqdfhatvsiztgdretlyl.supabase.co';
-  return `${supabaseUrl}/functions/v1/${functionName}`;
-};
-
-/**
- * Get the current user's access token for authentication
- */
-const getAccessToken = async (): Promise<string> => {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error || !session?.access_token) {
-    throw new Error('Not authenticated. Please log in to use AI features.');
-  }
-  return session.access_token;
-};
+// No need for getEdgeFunctionUrl or getAccessToken - supabase.functions.invoke handles it all!
 
 /**
  * Generate study content (notes, summary, or questions) using AI
@@ -82,29 +65,60 @@ export const generateStudyContent = async (
   settings: StudyToolSettings
 ): Promise<StudyToolResponse> => {
   try {
-    const accessToken = await getAccessToken();
+    // Check if user is authenticated first
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('[AI Service] Session check:', { 
+      hasSession: !!session, 
+      hasUser: !!session?.user,
+      userId: session?.user?.id 
+    });
     
-    const response = await fetch(getEdgeFunctionUrl('study-tools'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
+    if (!session?.user) {
+      return {
+        success: false,
+        error: 'You must be logged in to use AI features. Please log out of demo mode and create a real account.',
+      };
+    }
+    
+    console.log('[AI Service] Generating content...', { type, contentLength: content.length });
+    
+    // Use supabase.functions.invoke - auth is automatic!
+    const { data, error } = await supabase.functions.invoke('study-tools', {
+      body: {
         type,
         content,
         settings,
-      }),
+      },
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
+    if (error) {
+      console.error('[AI Service] Function error:', error);
+      
+      // Extract detailed error message from response body
+      let errorMessage = error.message;
+      if (error.context?.body) {
+        try {
+          const errorBody = typeof error.context.body === 'string' 
+            ? JSON.parse(error.context.body) 
+            : error.context.body;
+          if (errorBody?.error) errorMessage = errorBody.error;
+        } catch { /* ignore */ }
+      }
+      
       return {
         success: false,
-        error: data.error || `Failed to generate ${type}`,
+        error: errorMessage || `Failed to generate ${type}`,
       };
     }
+
+    if (!data?.success) {
+      return {
+        success: false,
+        error: data?.error || `Failed to generate ${type}`,
+      };
+    }
+
+    console.log('[AI Service] Success:', { hasContent: !!data.content });
 
     return {
       success: true,
@@ -112,7 +126,7 @@ export const generateStudyContent = async (
       content: data.content,
     };
   } catch (error) {
-    console.error('AI generation error:', error);
+    console.error('[AI Service] Generation error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',

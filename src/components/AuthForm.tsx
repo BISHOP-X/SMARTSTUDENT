@@ -91,20 +91,32 @@ const AuthForm = ({ onLogin }: AuthFormProps) => {
         if (error) throw error;
 
         if (data.user) {
-          // Get the user's role from their profile
-          const { data: profile } = await supabase
+          // Get the user's role from their profile - this is the ONLY source of truth
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', data.user.id)
             .single();
 
-          const userRole = (profile?.role as "student" | "lecturer") || role;
+          if (profileError || !profile?.role) {
+            // No profile found - this shouldn't happen but handle it
+            throw new Error("Account profile not found. Please contact support.");
+          }
+
+          const dbRole = profile.role as "student" | "lecturer";
+          
+          // Check if user is trying to login with the wrong role
+          if (dbRole !== role) {
+            // Sign out since they selected wrong role
+            await supabase.auth.signOut();
+            throw new Error(`This account is registered as a ${dbRole}. Please select "${dbRole === 'student' ? 'Student' : 'Lecturer'}" to login.`);
+          }
           
           toast({
             title: "Welcome back!",
             description: "You've been signed in successfully.",
           });
-          onLogin(userRole, false); // false = not demo mode
+          onLogin(dbRole, false); // Use the role from database
         }
       }
     } catch (error: any) {

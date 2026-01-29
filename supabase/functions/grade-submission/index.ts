@@ -43,14 +43,22 @@ serve(async (req) => {
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
+      {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false },
+      }
     );
 
-    // Try to verify user is authenticated (optional for now - allows demo mode)
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Validate JWT token and get user - pass token explicitly!
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
     
-    // Log authentication attempt (for debugging)
-    console.log("Auth attempt:", { hasUser: !!user, userError: userError?.message });
+    if (userError || !user) {
+      throw new Error("Unauthorized");
+    }
+    
+    console.log("Authenticated user:", user.id, user.email);
 
     // Parse the request body
     const { assignmentTitle, assignmentContext, studentAnswer, maxScore }: GradingRequest = await req.json();
@@ -167,15 +175,18 @@ Please grade this submission and provide feedback in JSON format.`;
 
   } catch (error) {
     console.error("Grading error:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    const isAuthError = errorMessage === "Unauthorized" || errorMessage === "Missing authorization header";
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message || "An error occurred during grading",
+        error: errorMessage,
         score: null,
         feedback: null,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: error.message === "Unauthorized" ? 401 : 500,
+        status: isAuthError ? 401 : 400,
       }
     );
   }

@@ -31,6 +31,28 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Role-based protected route - only allows specific roles
+const RoleProtectedRoute = ({ 
+  children, 
+  allowedRoles 
+}: { 
+  children: React.ReactNode; 
+  allowedRoles: ("student" | "lecturer")[] 
+}) => {
+  const { isAuthenticated, userRole } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  if (!userRole || !allowedRoles.includes(userRole)) {
+    // Redirect to dashboard if role not allowed
+    return <Navigate to="/courses" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 // Routes component that uses auth context
 const AppRoutes = () => {
   const { userRole, logout } = useAuth();
@@ -66,25 +88,25 @@ const AppRoutes = () => {
       <Route
         path="/submissions"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["student"]}>
             <MySubmissions userRole={role} onLogout={logout} />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
       <Route
         path="/grading"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["lecturer"]}>
             <GradingQueue userRole={role} onLogout={logout} />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
       <Route
         path="/courses/:id/analytics"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["lecturer"]}>
             <CourseAnalytics />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
       <Route
@@ -122,9 +144,9 @@ const AppRoutes = () => {
       <Route
         path="/ai-tools"
         element={
-          <ProtectedRoute>
+          <RoleProtectedRoute allowedRoles={["student"]}>
             <AIStudyTools />
-          </ProtectedRoute>
+          </RoleProtectedRoute>
         }
       />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

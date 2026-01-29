@@ -54,25 +54,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('Auth state changed:', event);
         
         if (event === 'SIGNED_IN' && session?.user) {
-          // Set user immediately from session metadata (don't wait for profile query)
-          const metadataRole = session.user.user_metadata?.role as "student" | "lecturer";
+          // Don't auto-authenticate here - let AuthForm handle role validation first
+          // Just update the user object silently
           setUser(session.user);
-          setUserRole(metadataRole || 'student');
-          setIsAuthenticated(true);
-          setIsDemo(false);
-          
-          // Try to get profile role in background (non-blocking)
-          supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single()
-            .then(({ data: profile }) => {
-              if (profile?.role) {
-                setUserRole(profile.role as "student" | "lecturer");
-              }
-            })
-            .catch(err => console.log('Profile fetch (non-blocking):', err));
             
         } else if (event === 'SIGNED_OUT') {
           setUser(null);

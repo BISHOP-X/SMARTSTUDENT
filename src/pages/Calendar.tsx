@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, BookOpen, Target, Calendar as CalendarIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Plus, BookOpen, Target, Calendar as CalendarIcon, Loader2, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,40 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
-import { getCalendarEvents, getEventsForDate, type CalendarEvent } from "@/data/mockData";
+import { toast } from "sonner";
+import { 
+  fetchEventsForMonth, 
+  createCalendarEvent, 
+  deleteCalendarEvent,
+  completeCalendarEvent,
+  type CalendarEvent as DBCalendarEvent 
+} from "@/lib/calendar-service";
+import { getCalendarEvents, getEventsForDate } from "@/data/mockData";
+
+// Unified event interface for the component
+interface UnifiedEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  type: string;
+  category?: string;
+  courseName?: string;
+  status?: string;
+  isFromDB?: boolean;
+}
+
+// Convert database event to unified format
+const convertDBEvent = (event: DBCalendarEvent): UnifiedEvent => ({
+  id: event.id,
+  title: event.title,
+  description: event.description,
+  date: event.event_date,
+  type: event.event_type,
+  category: event.category,
+  status: event.status,
+  isFromDB: true,
+});
 
 export default function Calendar() {
   const { userRole, isDemo } = useAuth();
@@ -18,6 +51,9 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
+  const [dbEvents, setDbEvents] = useState<DBCalendarEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   const [newGoal, setNewGoal] = useState({
     title: "",
@@ -26,8 +62,27 @@ export default function Calendar() {
     time: "12:00",
   });
 
-  // Get all events for the current month - only in demo mode
-  const allEvents = isDemo ? getCalendarEvents(userRole) : [];
+  // Fetch events when month changes (only for real users, not demo)
+  useEffect(() => {
+    const loadEvents = async () => {
+      if (isDemo) return; // Demo mode uses mock data
+      
+      setIsLoading(true);
+      const fetchedEvents = await fetchEventsForMonth(
+        currentDate.getFullYear(),
+        currentDate.getMonth()
+      );
+      setDbEvents(fetchedEvents);
+      setIsLoading(false);
+    };
+
+    loadEvents();
+  }, [currentDate, isDemo]);
+
+  // Get all events for the current month - demo mode uses mock data, real mode converts from DB
+  const allEvents: UnifiedEvent[] = isDemo 
+    ? getCalendarEvents(userRole) 
+    : dbEvents.map(convertDBEvent);
 
   // Calendar helpers
   const getDaysInMonth = (date: Date) => {
@@ -57,26 +112,92 @@ export default function Calendar() {
     );
   };
 
-  const getEventsForDay = (day: number): CalendarEvent[] => {
+  const getEventsForDay = (day: number): UnifiedEvent[] => {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    return getEventsForDate(date, userRole);
+    
+    if (isDemo) {
+      return getEventsForDate(date, userRole);
+    }
+    
+    // Filter real events for this day (already converted to unified format)
+    return allEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate.getDate() === day && 
+             eventDate.getMonth() === date.getMonth() &&
+             eventDate.getFullYear() === date.getFullYear();
+    });
   };
 
-  const handleCreateGoal = () => {
+  const handleCreateGoal = async () => {
+    if (!newGoal.title.trim()) {
+      toast.error("Please enter a title for your goal");
+      return;
+    }
+
     const date = selectedDate || currentDate;
     const [hours, minutes] = newGoal.time.split(':');
-    date.setHours(parseInt(hours), parseInt(minutes));
+    const eventDate = new Date(date);
+    eventDate.setHours(parseInt(hours), parseInt(minutes));
     
-    console.log("Creating goal:", {
-      ...newGoal,
-      eventDate: date.toISOString(),
-      userId: "student1",
-      status: "todo",
-      createdAt: new Date().toISOString(),
-    });
+    if (isDemo) {
+      // Demo mode - just log
+      console.log("Creating goal (demo):", {
+        ...newGoal,
+        eventDate: eventDate.toISOString(),
+      });
+      toast.success("Goal created! (Demo mode - not saved)");
+    } else {
+      // Real mode - save to database
+      setIsCreating(true);
+      const created = await createCalendarEvent({
+        title: newGoal.title,
+        description: newGoal.description || undefined,
+        event_date: eventDate,
+        category: newGoal.category as 'study' | 'health' | 'personal' | 'career' | 'other',
+        event_type: 'goal',
+      });
+
+      if (created) {
+        setDbEvents(prev => [...prev, created].sort((a, b) => 
+          new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+        ));
+        toast.success("Goal created successfully!");
+      } else {
+        toast.error("Failed to create goal. Please try again.");
+      }
+      setIsCreating(false);
+    }
     
     setIsCreateDialogOpen(false);
     setNewGoal({ title: "", description: "", category: "study", time: "12:00" });
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (isDemo) {
+      toast.info("Cannot delete in demo mode");
+      return;
+    }
+
+    const success = await deleteCalendarEvent(eventId);
+    if (success) {
+      setDbEvents(prev => prev.filter(e => e.id !== eventId));
+      toast.success("Event deleted");
+    } else {
+      toast.error("Failed to delete event");
+    }
+  };
+
+  const handleCompleteEvent = async (eventId: string) => {
+    if (isDemo) {
+      toast.info("Cannot update in demo mode");
+      return;
+    }
+
+    const updated = await completeCalendarEvent(eventId);
+    if (updated) {
+      setDbEvents(prev => prev.map(e => e.id === eventId ? updated : e));
+      toast.success("Event marked as complete!");
+    }
   };
 
   const handleDateClick = (day: number) => {
@@ -101,9 +222,14 @@ export default function Calendar() {
 
   const monthName = currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
-  const getEventColor = (event: CalendarEvent) => {
-    if (event.type === "assignment") {
-      return event.status === "overdue" ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-violet-500/20 text-violet-400 border-violet-500/30";
+  const getEventColor = (event: UnifiedEvent) => {
+    // Handle unified event type
+    const eventType = event.type;
+    const eventCategory = event.category;
+    const eventStatus = event.status;
+    
+    if (eventType === "assignment") {
+      return eventStatus === "overdue" ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-violet-500/20 text-violet-400 border-violet-500/30";
     }
     const colors: Record<string, string> = {
       study: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -112,11 +238,12 @@ export default function Calendar() {
       career: "bg-purple-500/20 text-purple-400 border-purple-500/30",
       other: "bg-slate-500/20 text-slate-400 border-slate-500/30",
     };
-    return colors[event.category || "other"] || colors.other;
+    return colors[eventCategory || "other"] || colors.other;
   };
 
-  const getEventIcon = (event: CalendarEvent) => {
-    if (event.type === "assignment") return <BookOpen className="w-3 h-3" />;
+  const getEventIcon = (event: UnifiedEvent) => {
+    const eventType = event.type;
+    if (eventType === "assignment") return <BookOpen className="w-3 h-3" />;
     return <Target className="w-3 h-3" />;
   };
 
@@ -202,9 +329,16 @@ export default function Calendar() {
                   <Button
                     onClick={handleCreateGoal}
                     className="w-full bg-violet-600 hover:bg-violet-700"
-                    disabled={!newGoal.title}
+                    disabled={!newGoal.title || isCreating}
                   >
-                    Create Goal
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Goal"
+                    )}
                   </Button>
                 </div>
               </DialogContent>
