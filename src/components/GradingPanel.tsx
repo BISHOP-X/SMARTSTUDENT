@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CheckCircle2, Sparkles, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle2, Sparkles, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,16 +12,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
+import { getSubmission, saveManualGrade, type Submission } from "@/lib/submission-service";
+import { toast } from "sonner";
 
 interface GradingPanelProps {
   open: boolean;
   onClose: () => void;
-  submissionId: number;
+  submissionId: string;
   assignmentMaxScore: number;
 }
 
-interface SubmissionDetail {
-  id: number;
+// Mock submission data with full details - used ONLY in demo mode
+const mockSubmissionDetails: Record<string, {
+  id: string;
   studentName: string;
   submittedAt: string;
   contentText: string;
@@ -30,12 +34,9 @@ interface SubmissionDetail {
   status: string;
   manualScore: number | null;
   manualFeedback: string | null;
-}
-
-// Mock submission data with full details
-const mockSubmissionDetails: Record<number, SubmissionDetail> = {
-  1: {
-    id: 1,
+}> = {
+  "1": {
+    id: "1",
     studentName: "Alex Johnson",
     submittedAt: "2026-01-18T14:30:00",
     contentText:
@@ -47,8 +48,8 @@ const mockSubmissionDetails: Record<number, SubmissionDetail> = {
     manualScore: null,
     manualFeedback: null,
   },
-  2: {
-    id: 2,
+  "2": {
+    id: "2",
     studentName: "Maria Garcia",
     submittedAt: "2026-01-18T15:45:00",
     contentText:
@@ -60,8 +61,8 @@ const mockSubmissionDetails: Record<number, SubmissionDetail> = {
     manualScore: null,
     manualFeedback: null,
   },
-  3: {
-    id: 3,
+  "3": {
+    id: "3",
     studentName: "James Wilson",
     submittedAt: "2026-01-19T09:15:00",
     contentText:
@@ -73,8 +74,8 @@ const mockSubmissionDetails: Record<number, SubmissionDetail> = {
     manualScore: null,
     manualFeedback: null,
   },
-  4: {
-    id: 4,
+  "4": {
+    id: "4",
     studentName: "Sarah Chen",
     submittedAt: "2026-01-19T11:20:00",
     contentText:
@@ -89,16 +90,85 @@ const mockSubmissionDetails: Record<number, SubmissionDetail> = {
 };
 
 const GradingPanel = ({ open, onClose, submissionId, assignmentMaxScore }: GradingPanelProps) => {
-  const submission = mockSubmissionDetails[submissionId];
+  const { isDemo } = useAuth();
   
-  const [manualScore, setManualScore] = useState<string>(
-    submission?.manualScore?.toString() || submission?.aiScore?.toString() || ""
-  );
-  const [manualFeedback, setManualFeedback] = useState(
-    submission?.manualFeedback || submission?.aiFeedback || ""
-  );
+  // Real DB state
+  const [dbSubmission, setDbSubmission] = useState<Submission | null>(null);
+  const [isLoadingSub, setIsLoadingSub] = useState(false);
+  
+  // Load real submission from DB
+  useEffect(() => {
+    if (!open || isDemo) return;
+    const loadSub = async () => {
+      setIsLoadingSub(true);
+      const result = await getSubmission(submissionId);
+      if (result.submission) setDbSubmission(result.submission);
+      setIsLoadingSub(false);
+    };
+    loadSub();
+  }, [submissionId, open, isDemo]);
+
+  // Resolve submission data: mock for demo, DB for real
+  const submission = isDemo
+    ? mockSubmissionDetails[submissionId]
+      ? {
+          id: mockSubmissionDetails[submissionId].id,
+          studentName: mockSubmissionDetails[submissionId].studentName,
+          submittedAt: mockSubmissionDetails[submissionId].submittedAt,
+          contentText: mockSubmissionDetails[submissionId].contentText,
+          aiScore: mockSubmissionDetails[submissionId].aiScore,
+          aiFeedback: mockSubmissionDetails[submissionId].aiFeedback,
+          status: mockSubmissionDetails[submissionId].status,
+          manualScore: mockSubmissionDetails[submissionId].manualScore,
+          manualFeedback: mockSubmissionDetails[submissionId].manualFeedback,
+        }
+      : null
+    : dbSubmission
+    ? {
+        id: dbSubmission.id,
+        studentName: dbSubmission.student_name || "Unknown",
+        submittedAt: dbSubmission.submitted_at,
+        contentText: dbSubmission.content_text || "",
+        aiScore: dbSubmission.ai_score ?? 0,
+        aiFeedback: dbSubmission.ai_feedback || "Not graded by AI yet",
+        status: dbSubmission.status,
+        manualScore: dbSubmission.manual_score,
+        manualFeedback: dbSubmission.manual_feedback,
+      }
+    : null;
+
+  const [manualScore, setManualScore] = useState<string>("");
+  const [manualFeedback, setManualFeedback] = useState("");
   const [isOverriding, setIsOverriding] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Reset form when submission data loads
+  useEffect(() => {
+    if (submission) {
+      setManualScore(
+        submission.manualScore?.toString() || submission.aiScore?.toString() || ""
+      );
+      setManualFeedback(
+        submission.manualFeedback || submission.aiFeedback || ""
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submission?.id]);
+
+  if (!open) return null;
+  
+  // Loading state for real data
+  if (!isDemo && isLoadingSub) {
+    return (
+      <Sheet open={open} onOpenChange={onClose}>
+        <SheetContent className="w-[600px] sm:max-w-[600px] overflow-y-auto">
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   if (!submission) return null;
 
@@ -119,16 +189,26 @@ const GradingPanel = ({ open, onClose, submissionId, assignmentMaxScore }: Gradi
 
   const handleSaveOverride = async () => {
     setIsSaving(true);
-    console.log("Saving manual override:", {
-      submissionId,
-      manualScore: Number(manualScore),
-      manualFeedback,
-    });
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!isDemo) {
+      // Save to real DB
+      const result = await saveManualGrade(
+        submissionId,
+        Number(manualScore),
+        manualFeedback
+      );
+      if (result.success) {
+        toast.success('Grade saved successfully!');
+      } else {
+        toast.error(result.error || 'Failed to save grade');
+        setIsSaving(false);
+        return;
+      }
+    } else {
+      // Demo mode - simulate
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
 
-    // TODO: API call to save manual override
     setIsSaving(false);
     setIsOverriding(false);
     onClose();

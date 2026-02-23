@@ -25,6 +25,14 @@ import GradingPanel from "@/components/GradingPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { gradeSubmission, canUseAI } from "@/lib/ai-service";
 import { uploadSubmission } from "@/lib/file-upload-service";
+import { getAssignment, type Assignment } from "@/lib/assignment-service";
+import {
+  submitAssignment as submitAssignmentToDb,
+  updateSubmissionWithAIGrade,
+  getMySubmission,
+  getAssignmentSubmissions,
+  type Submission,
+} from "@/lib/submission-service";
 import { toast } from "sonner";
 
 interface AssignmentDetailProps {
@@ -32,27 +40,27 @@ interface AssignmentDetailProps {
   onLogout: () => void;
 }
 
-// Mock assignment data
+// Mock assignment data - used ONLY in demo mode
 const mockAssignment = {
-  id: 1,
+  id: "1",
   title: "DNA Replication Essay",
   description:
     "Write a comprehensive essay explaining the process of DNA replication. Your answer should cover the three main phases: initiation, elongation, and termination. Include the roles of key enzymes such as helicase, DNA polymerase, and primase. Discuss the differences between leading and lagging strand synthesis.",
   dueDate: "2026-01-25",
   maxScore: 100,
-  courseId: 1,
+  courseId: "1",
   courseName: "Molecular Biology",
   courseCode: "BIO301",
-  allowFileUpload: true, // Enable file uploads
+  allowFileUpload: true,
   gradingRubric:
     "A complete answer should explain DNA replication in 3 steps: initiation, elongation, and termination. Must mention helicase, DNA polymerase, and leading/lagging strands. Bonus points for discussing Okazaki fragments and the proofreading mechanism.",
 };
 
-// Mock submission data (student's own submission)
+// Mock submission data (student's own submission) - demo only
 const mockStudentSubmission = {
-  id: 1,
-  assignmentId: 1,
-  studentId: 1,
+  id: "1",
+  assignmentId: "1",
+  studentId: "1",
   contentText:
     "DNA replication is a complex process that occurs in three main phases. During initiation, helicase unwinds the double helix. In elongation, DNA polymerase adds nucleotides to the growing strand. Finally, termination occurs when replication is complete.",
   submittedAt: "2026-01-18T14:30:00",
@@ -62,36 +70,36 @@ const mockStudentSubmission = {
     "Good explanation of the three phases. However, you missed important details about leading and lagging strands. The answer would benefit from discussing Okazaki fragments and the specific roles of different DNA polymerases.",
 };
 
-// Mock submissions data (all students - for lecturer view)
+// Mock submissions data (all students - for lecturer view) - demo only
 const mockAllSubmissions = [
   {
-    id: 1,
+    id: "1",
     studentName: "Alex Johnson",
-    studentId: 1,
+    studentId: "1",
     submittedAt: "2026-01-18T14:30:00",
     status: "graded" as const,
     score: 78,
   },
   {
-    id: 2,
+    id: "2",
     studentName: "Maria Garcia",
-    studentId: 2,
+    studentId: "2",
     submittedAt: "2026-01-18T15:45:00",
     status: "graded" as const,
     score: 92,
   },
   {
-    id: 3,
+    id: "3",
     studentName: "James Wilson",
-    studentId: 3,
+    studentId: "3",
     submittedAt: "2026-01-19T09:15:00",
     status: "pending" as const,
     score: null,
   },
   {
-    id: 4,
+    id: "4",
     studentName: "Sarah Chen",
-    studentId: 4,
+    studentId: "4",
     submittedAt: "2026-01-19T11:20:00",
     status: "pending" as const,
     score: null,
@@ -104,6 +112,12 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
   const [activeTab] = useState("courses");
   const { isDemo } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Real DB state
+  const [dbAssignment, setDbAssignment] = useState<Assignment | null>(null);
+  const [dbSubmission, setDbSubmission] = useState<Submission | null>(null);
+  const [dbAllSubmissions, setDbAllSubmissions] = useState<Submission[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Student submission state
   const [submissionText, setSubmissionText] = useState("");
@@ -122,11 +136,82 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
 
   // Lecturer grading state
-  const [selectedSubmission, setSelectedSubmission] = useState<number | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
 
-  const assignment = mockAssignment;
-  const studentSubmission = userRole === "student" ? mockStudentSubmission : null;
-  const hasSubmitted = studentSubmission !== null;
+  // Load real data from DB
+  useEffect(() => {
+    if (isDemo || !assignmentId) return;
+    const loadData = async () => {
+      setIsLoadingData(true);
+      const [assignmentResult, submissionResult] = await Promise.all([
+        getAssignment(assignmentId),
+        userRole === "student"
+          ? getMySubmission(assignmentId)
+          : getAssignmentSubmissions(assignmentId),
+      ]);
+
+      if (assignmentResult.assignment) setDbAssignment(assignmentResult.assignment);
+
+      if (userRole === "student") {
+        const sub = submissionResult as { submission: Submission | null };
+        if (sub.submission) {
+          setDbSubmission(sub.submission);
+          // If already graded, show the result
+          if (sub.submission.ai_score !== null) {
+            setSubmissionResult({
+              score: sub.submission.manual_score ?? sub.submission.ai_score,
+              feedback: sub.submission.manual_feedback ?? sub.submission.ai_feedback ?? "",
+              isRealAI: true,
+            });
+          }
+        }
+      } else {
+        const subs = submissionResult as { submissions: Submission[] };
+        setDbAllSubmissions(subs.submissions);
+      }
+      setIsLoadingData(false);
+    };
+    loadData();
+  }, [isDemo, assignmentId, userRole]);
+
+  // Resolve assignment data
+  const assignment = isDemo
+    ? mockAssignment
+    : dbAssignment
+    ? {
+        id: dbAssignment.id,
+        title: dbAssignment.title,
+        description: dbAssignment.description || "",
+        dueDate: dbAssignment.due_date,
+        maxScore: dbAssignment.max_score,
+        courseId: dbAssignment.course_id,
+        courseName: dbAssignment.course_title || "",
+        courseCode: dbAssignment.course_code || "",
+        allowFileUpload: dbAssignment.allow_file_upload,
+        gradingRubric: dbAssignment.grading_rubric || "",
+      }
+    : null;
+
+  const studentSubmission = isDemo
+    ? userRole === "student"
+      ? mockStudentSubmission
+      : null
+    : dbSubmission;
+
+  const hasSubmitted = isDemo
+    ? studentSubmission !== null
+    : dbSubmission !== null || submissionResult !== null;
+
+  const allSubmissions = isDemo
+    ? mockAllSubmissions
+    : dbAllSubmissions.map((s) => ({
+        id: s.id,
+        studentName: s.student_name || "Unknown",
+        studentId: s.student_id,
+        submittedAt: s.submitted_at,
+        status: s.status,
+        score: s.manual_score ?? s.ai_score,
+      }));
 
   const handleBack = () => {
     navigate(`/courses/${courseId}`);
@@ -187,6 +272,7 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
   };
 
   const handleSubmit = async () => {
+    if (!assignment) return;
     // Require either text or file
     if (!submissionText.trim() && !uploadedFile) {
       toast.error('Please enter your answer or upload a file');
@@ -208,7 +294,22 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
       const aiCheck = await canUseAI();
       
       if (!isDemo && aiCheck.canUse) {
-        // Use real AI grading
+        // Step 1: Save submission to DB
+        const dbResult = await submitAssignmentToDb({
+          assignment_id: assignmentId!,
+          content_text: submissionText,
+          file_url: fileUrl,
+        });
+
+        if (!dbResult.success || !dbResult.submission) {
+          setSubmissionError(dbResult.error || 'Failed to save submission');
+          setIsSubmitting(false);
+          return;
+        }
+
+        toast.success('Submission saved! AI is grading...');
+
+        // Step 2: Use real AI grading
         setIsGrading(true);
         
         const result = await gradeSubmission({
@@ -221,16 +322,26 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
         setIsGrading(false);
 
         if (result.error || result.score === null) {
-          setSubmissionError(result.error || 'Failed to grade submission');
+          // Submission saved but AI grading failed
+          setSubmissionError(result.error || 'AI grading failed, but your submission was saved.');
           setIsSubmitting(false);
           return;
         }
+
+        // Step 3: Update submission with AI grade
+        await updateSubmissionWithAIGrade(
+          dbResult.submission.id,
+          result.score,
+          result.feedback || 'No feedback provided'
+        );
 
         setSubmissionResult({
           score: result.score,
           feedback: result.feedback || 'No feedback provided',
           isRealAI: true,
         });
+
+        toast.success(`Graded! Score: ${result.score}/${assignment.maxScore}`);
       } else {
         // Demo mode - simulate grading
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -278,6 +389,37 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
   const daysUntilDue = getDaysUntilDue();
   const isOverdue = daysUntilDue < 0;
   const isDueSoon = daysUntilDue <= 3 && daysUntilDue >= 0;
+
+  // Loading state
+  if (!isDemo && isLoadingData) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Navigation activeTab={activeTab} onTabChange={() => {}} onLogout={onLogout} />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 mx-auto text-primary mb-4 animate-spin" />
+            <p className="text-muted-foreground">Loading assignment...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Assignment not found
+  if (!assignment) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Navigation activeTab={activeTab} onTabChange={() => {}} onLogout={onLogout} />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">Assignment not found</p>
+            <Button variant="outline" className="mt-4" onClick={handleBack}>Go Back</Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -364,11 +506,17 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
-                      {studentSubmission ? `Submitted on ${formatDate(studentSubmission.submittedAt)}` : "Just submitted"}
+                      {isDemo && studentSubmission
+                        ? `Submitted on ${formatDate((studentSubmission as any).submittedAt)}`
+                        : dbSubmission
+                        ? `Submitted on ${formatDate(dbSubmission.submitted_at)}`
+                        : "Just submitted"}
                     </p>
                     <div className="p-4 rounded-lg bg-secondary/30 border border-border">
                       <p className="text-foreground whitespace-pre-wrap">
-                        {studentSubmission?.contentText || submissionText}
+                        {isDemo
+                          ? (studentSubmission as any)?.contentText || submissionText
+                          : dbSubmission?.content_text || submissionText}
                       </p>
                     </div>
                   </div>
@@ -386,7 +534,7 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                     <div className="flex items-center gap-4 mb-6">
                       <div className="text-center">
                         <div className="text-4xl font-bold text-primary">
-                          {submissionResult?.score ?? studentSubmission?.aiScore}
+                          {submissionResult?.score ?? (isDemo ? (studentSubmission as any)?.aiScore : (dbSubmission?.manual_score ?? dbSubmission?.ai_score))}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           out of {assignment.maxScore}
@@ -396,7 +544,7 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                       <div>
                         <div className="text-sm text-muted-foreground mb-1">Percentage</div>
                         <div className="text-2xl font-semibold">
-                          {Math.round(((submissionResult?.score ?? studentSubmission?.aiScore ?? 0) / assignment.maxScore) * 100)}%
+                          {Math.round(((submissionResult?.score ?? (isDemo ? (studentSubmission as any)?.aiScore : (dbSubmission?.manual_score ?? dbSubmission?.ai_score)) ?? 0) / assignment.maxScore) * 100)}%
                         </div>
                       </div>
                     </div>
@@ -405,7 +553,7 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                         {submissionResult?.isRealAI ? "AI Feedback (Groq)" : "AI Feedback"}
                       </h3>
                       <p className="text-sm text-foreground/90">
-                        {submissionResult?.feedback ?? studentSubmission?.aiFeedback}
+                        {submissionResult?.feedback ?? (isDemo ? (studentSubmission as any)?.aiFeedback : (dbSubmission?.manual_feedback ?? dbSubmission?.ai_feedback))}
                       </p>
                     </div>
                   </div>
@@ -546,10 +694,10 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
               {/* Submissions List */}
               <div className="glass-card p-6">
                 <h2 className="text-xl font-semibold text-foreground mb-4">
-                  Student Submissions ({mockAllSubmissions.length})
+                  Student Submissions ({allSubmissions.length})
                 </h2>
                 <div className="space-y-2">
-                  {mockAllSubmissions.map((submission) => (
+                  {allSubmissions.map((submission) => (
                     <div
                       key={submission.id}
                       className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-secondary/50 transition-colors cursor-pointer"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TimeGreeting from "@/components/TimeGreeting";
 import CourseCard from "@/components/CourseCard";
@@ -25,6 +25,8 @@ import {
   type Assignment,
   type GradeEntry
 } from "@/data/mockData";
+import { getMyCourses, type Course as DbCourse } from "@/lib/course-service";
+import { getMySubmissions, getPendingSubmissions, type Submission as DbSubmission } from "@/lib/submission-service";
 
 import courseBiology from "@/assets/course-biology.jpg";
 import courseCs from "@/assets/course-cs.jpg";
@@ -82,6 +84,29 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  // Real DB state
+  const [dbCourses, setDbCourses] = useState<DbCourse[]>([]);
+  const [dbSubmissions, setDbSubmissions] = useState<DbSubmission[]>([]);
+  const [dbPendingSubs, setDbPendingSubs] = useState<DbSubmission[]>([]);
+
+  // Load real data from DB
+  useEffect(() => {
+    if (isDemo) return;
+    const loadData = async () => {
+      const [coursesResult, subsResult] = await Promise.all([
+        getMyCourses(),
+        userRole === "student" ? getMySubmissions() : getPendingSubmissions(),
+      ]);
+      setDbCourses(coursesResult.courses);
+      if (userRole === "student") {
+        setDbSubmissions((subsResult as any).submissions || []);
+      } else {
+        setDbPendingSubs((subsResult as any).submissions || []);
+      }
+    };
+    loadData();
+  }, [isDemo, userRole]);
+  
   // Get display name based on auth mode
   const getDisplayName = () => {
     if (isDemo) {
@@ -94,7 +119,7 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
     return userRole === "student" ? "Student" : "Professor";
   };
 
-  const handleCourseClick = (courseId: number) => {
+  const handleCourseClick = (courseId: number | string) => {
     navigate(`/courses/${courseId}`);
   };
 
@@ -112,16 +137,81 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
 
   // ============================================
   // DATA BASED ON AUTH MODE
-  // Demo mode: Show sample data | Real auth: Show empty (new user)
+  // Demo mode: Show sample data | Real auth: Show DB data
   // ============================================
   
   // Courses to display
-  const displayCourses = isDemo ? courses : [];
+  const displayCourses = isDemo
+    ? courses
+    : dbCourses.map((c, idx) => ({
+        id: c.id,
+        title: c.title,
+        instructor: c.lecturer_name || "You",
+        progress: 0,
+        nextClass: "",
+        image: c.image_url || [courseBiology, courseCs, courseMath, courseLiterature][idx % 4],
+        students: c.student_count || 0,
+      }));
   const displayDeadlines = isDemo ? mockUpcomingDeadlines : [];
-  const displayGrades = isDemo ? mockRecentGrades : [];
-  const displayStudentSubmissions = isDemo ? mockStudentSubmissions : [];
-  const displayCoursesTaught = isDemo ? mockCoursesTaught : [];
-  const displayLecturerSubmissions = isDemo ? mockLecturerSubmissions : [];
+  const displayGrades = isDemo
+    ? mockRecentGrades
+    : dbSubmissions
+        .filter((s) => s.ai_score !== null || s.manual_score !== null)
+        .map((s) => ({
+          id: s.id,
+          assignmentTitle: s.assignment_title || "Untitled",
+          courseName: s.course_title || "",
+          submittedAt: s.submitted_at,
+          gradedAt: s.graded_at || s.submitted_at,
+          score: s.manual_score ?? s.ai_score ?? 0,
+          maxScore: s.max_score ?? 100,
+          feedback: s.manual_feedback ?? s.ai_feedback ?? "",
+          isAiGraded: s.manual_score === null,
+        }));
+  const displayStudentSubmissions = isDemo
+    ? mockStudentSubmissions
+    : dbSubmissions.map((s) => ({
+        id: s.id,
+        assignmentId: s.assignment_id,
+        assignmentTitle: s.assignment_title || "Untitled",
+        courseId: s.course_id || "",
+        courseName: s.course_title || "",
+        studentId: s.student_id,
+        studentName: s.student_name || "",
+        submittedAt: s.submitted_at,
+        status: s.status as "pending" | "graded",
+        contentText: s.content_text || "",
+        aiScore: s.ai_score ?? undefined,
+        aiFeedback: s.ai_feedback ?? undefined,
+        manualScore: s.manual_score ?? undefined,
+        manualFeedback: s.manual_feedback ?? undefined,
+        maxScore: s.max_score ?? 100,
+      }));
+  const displayCoursesTaught = isDemo
+    ? mockCoursesTaught
+    : dbCourses.map((c) => ({
+        id: c.id,
+        title: c.title,
+        students: c.student_count || 0,
+        pendingGrades: 0,
+      }));
+  const displayLecturerSubmissions = isDemo
+    ? mockLecturerSubmissions
+    : dbPendingSubs.map((s) => ({
+        id: s.id,
+        assignmentId: s.assignment_id,
+        assignmentTitle: s.assignment_title || "Untitled",
+        courseId: s.course_id || "",
+        courseName: s.course_title || "",
+        studentId: s.student_id,
+        studentName: s.student_name || "Unknown",
+        submittedAt: s.submitted_at,
+        status: s.status as "pending" | "graded",
+        contentText: s.content_text || "",
+        aiScore: s.ai_score ?? undefined,
+        aiFeedback: s.ai_feedback ?? undefined,
+        maxScore: s.max_score ?? 100,
+      }));
 
   // Calculate quick stats for students
   const coursesEnrolled = displayCourses.length;

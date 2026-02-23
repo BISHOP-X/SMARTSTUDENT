@@ -1,14 +1,14 @@
 import { BookOpen, Clock, TrendingUp, Users } from "lucide-react";
 
 interface CourseCardProps {
-  courseId: number;
+  courseId: number | string;
   title: string;
   instructor: string;
   progress: number;
   nextClass: string;
   image: string;
   students?: number;
-  onClick?: (courseId: number) => void;
+  onClick?: (courseId: number | string) => void;
 }
 
 const CourseCard = ({ courseId, title, instructor, progress, nextClass, image, students = 24, onClick }: CourseCardProps) => {

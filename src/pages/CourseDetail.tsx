@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,6 +12,7 @@ import {
   Edit,
   Trash2,
   MoreVertical,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,20 +27,25 @@ import Navigation from "@/components/Navigation";
 import MaterialUpload, { UploadedMaterial } from "@/components/MaterialUpload";
 import AssignmentCreationForm, { AssignmentFormData } from "@/components/AssignmentCreationForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCourse, getCourseStudents, type Course } from "@/lib/course-service";
+import { getCourseAssignments, createAssignment, type Assignment } from "@/lib/assignment-service";
+import { toast } from "sonner";
 
-// Import course images
+// Import course images (fallbacks)
 import courseBiology from "@/assets/course-biology.jpg";
 import courseCs from "@/assets/course-cs.jpg";
 import courseMath from "@/assets/course-math.jpg";
 import courseLiterature from "@/assets/course-literature.jpg";
+
+const fallbackImages = [courseBiology, courseCs, courseMath, courseLiterature];
 
 interface CourseDetailProps {
   userRole: "student" | "lecturer";
   onLogout: () => void;
 }
 
-// Mock course database - will be replaced with API calls
-const mockCourses = {
+// Mock course database - used ONLY in demo mode
+const mockCourses: Record<string, any> = {
   1: {
     title: "Molecular Biology",
     courseCode: "BIO301",
@@ -105,34 +111,112 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
   const [activeTab, setActiveTab] = useState("courses");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
+  
+  // Real data state
+  const [courseData, setCourseData] = useState<Course | null>(null);
+  const [dbAssignments, setDbAssignments] = useState<Assignment[]>([]);
+  const [dbStudents, setDbStudents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load real data from DB
+  useEffect(() => {
+    if (isDemo || !id) return;
+    const loadCourseData = async () => {
+      setIsLoading(true);
+      const [courseResult, assignmentResult, studentsResult] = await Promise.all([
+        getCourse(id),
+        getCourseAssignments(id),
+        getCourseStudents(id),
+      ]);
+      if (courseResult.course) setCourseData(courseResult.course);
+      setDbAssignments(assignmentResult.assignments);
+      setDbStudents(studentsResult.students);
+      setIsLoading(false);
+    };
+    loadCourseData();
+  }, [id, isDemo]);
 
   const handleMaterialUpload = (uploadedMaterials: UploadedMaterial[]) => {
     console.log("Uploaded materials:", uploadedMaterials);
-    // TODO: API call to save materials
-    // After successful upload, refresh materials list
   };
 
-  const handleAssignmentCreate = (assignmentData: AssignmentFormData) => {
-    console.log("Creating assignment:", assignmentData);
-    // TODO: API call to create assignment
-    // After successful creation, refresh assignments list
+  const handleAssignmentCreate = async (assignmentData: AssignmentFormData) => {
+    if (isDemo) {
+      toast.info('Assignment creation is not available in demo mode');
+      return;
+    }
+    const result = await createAssignment({
+      course_id: id!,
+      title: assignmentData.title,
+      description: assignmentData.description,
+      due_date: assignmentData.dueDate,
+      max_score: assignmentData.maxScore,
+      grading_rubric: assignmentData.gradingRubric,
+      allow_file_upload: assignmentData.allowFileUpload,
+    });
+    if (result.success) {
+      toast.success('Assignment created!');
+      // Refresh assignments
+      const { assignments } = await getCourseAssignments(id!);
+      setDbAssignments(assignments);
+      setIsAssignmentModalOpen(false);
+    } else {
+      toast.error(result.error || 'Failed to create assignment');
+    }
   };
 
-  // Get course from mock database - only in demo mode
-  const courseId = Number(id);
-  const courseData = isDemo ? mockCourses[courseId as keyof typeof mockCourses] : null;
+  // Resolve course: demo uses mock, real uses DB
+  const demoCourse = isDemo ? mockCourses[id as string] : null;
 
-  // If course not found or not in demo mode, redirect to courses page
-  if (!courseData) {
+  // Loading state for real users
+  if (!isDemo && isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Navigation activeTab={activeTab} onTabChange={setActiveTab} onLogout={onLogout} />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 mx-auto text-primary mb-4 animate-spin" />
+            <p className="text-muted-foreground">Loading course...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // If course not found, redirect
+  if (isDemo && !demoCourse) {
     navigate("/courses");
     return null;
   }
+  if (!isDemo && !courseData) {
+    if (!isLoading) {
+      navigate("/courses");
+    }
+    return null;
+  }
 
-  const course = {
-    id: courseId,
-    ...courseData,
-    status: "active",
-  };
+  // Build unified course object
+  const course = isDemo
+    ? {
+        id: id!,
+        ...demoCourse,
+        status: "active",
+      }
+    : {
+        id: courseData!.id,
+        title: courseData!.title,
+        courseCode: courseData!.course_code,
+        instructor: courseData!.lecturer_name || "You",
+        description: courseData!.description || "",
+        progress: 0,
+        students: dbStudents.length,
+        assignments: dbAssignments.length,
+        nextClass: "",
+        image: courseData!.image_url || fallbackImages[0],
+        semester: courseData!.semester,
+        credits: courseData!.credits,
+        status: "active",
+      };
 
   const materials = [
     {
@@ -158,40 +242,69 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
     },
   ];
 
-  const assignments = [
-    {
-      id: 1,
-      title: "DNA Replication Essay",
-      dueDate: "Jan 25, 2026",
-      status: "pending",
-      maxScore: 100,
-      submissions: 12,
-    },
-    {
-      id: 2,
-      title: "Gene Expression Quiz",
-      dueDate: "Jan 30, 2026",
-      status: "upcoming",
-      maxScore: 50,
-      submissions: 0,
-    },
-    {
-      id: 3,
-      title: "Lab Report - PCR Analysis",
-      dueDate: "Jan 15, 2026",
-      status: "graded",
-      maxScore: 100,
-      submissions: 32,
-      score: 87,
-    },
-  ];
+  // Assignments: demo uses hardcoded, real uses DB
+  const assignments = isDemo
+    ? [
+        {
+          id: "1",
+          title: "DNA Replication Essay",
+          dueDate: "Jan 25, 2026",
+          status: "pending",
+          maxScore: 100,
+          submissions: 12,
+        },
+        {
+          id: "2",
+          title: "Gene Expression Quiz",
+          dueDate: "Jan 30, 2026",
+          status: "upcoming",
+          maxScore: 50,
+          submissions: 0,
+        },
+        {
+          id: "3",
+          title: "Lab Report - PCR Analysis",
+          dueDate: "Jan 15, 2026",
+          status: "graded",
+          maxScore: 100,
+          submissions: 32,
+          score: 87,
+        },
+      ]
+    : dbAssignments.map((a) => {
+        const dueDate = new Date(a.due_date);
+        const now = new Date();
+        let status = "upcoming";
+        if (dueDate < now) status = "pending";
 
-  const students = [
-    { id: 1, name: "Alex Johnson", email: "alex.j@university.edu", progress: 85 },
-    { id: 2, name: "Sarah Williams", email: "sarah.w@university.edu", progress: 92 },
-    { id: 3, name: "Michael Chen", email: "michael.c@university.edu", progress: 78 },
-    { id: 4, name: "Emily Rodriguez", email: "emily.r@university.edu", progress: 95 },
-  ];
+        return {
+          id: a.id,
+          title: a.title,
+          dueDate: dueDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          status,
+          maxScore: a.max_score,
+          submissions: a.submission_count || 0,
+        };
+      });
+
+  // Students: demo uses hardcoded, real uses DB
+  const students = isDemo
+    ? [
+        { id: 1, name: "Alex Johnson", email: "alex.j@university.edu", progress: 85 },
+        { id: 2, name: "Sarah Williams", email: "sarah.w@university.edu", progress: 92 },
+        { id: 3, name: "Michael Chen", email: "michael.c@university.edu", progress: 78 },
+        { id: 4, name: "Emily Rodriguez", email: "emily.r@university.edu", progress: 95 },
+      ]
+    : dbStudents.map((s) => ({
+        id: s.student_id,
+        name: (s.profile as any)?.full_name || "Unknown",
+        email: (s.profile as any)?.email || "",
+        progress: 0,
+      }));
 
   const handleBack = () => {
     navigate("/courses");

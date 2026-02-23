@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, Plus, BookOpen, Users, Clock, TrendingUp } from "lucide-react";
+import { Search, Filter, Plus, BookOpen, Users, Clock, TrendingUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,12 +14,17 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import CourseCreationForm, { CourseFormData } from "@/components/CourseCreationForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { getMyCourses, createCourse, type Course } from "@/lib/course-service";
+import { toast } from "sonner";
 
-// Import course images
+// Import course images (used as fallbacks)
 import courseBiology from "@/assets/course-biology.jpg";
 import courseCs from "@/assets/course-cs.jpg";
 import courseMath from "@/assets/course-math.jpg";
 import courseLiterature from "@/assets/course-literature.jpg";
+
+// Fallback images for courses without a custom image
+const fallbackImages = [courseBiology, courseCs, courseMath, courseLiterature];
 
 interface CoursesPageProps {
   userRole: "student" | "lecturer";
@@ -33,21 +38,56 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [dbCourses, setDbCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateCourse = (courseData: CourseFormData) => {
-    console.log("Creating course:", courseData);
-    // TODO: API call to create course
-    // After successful creation, refresh course list
+  // Load real courses from DB for authenticated users
+  useEffect(() => {
+    if (isDemo) return;
+    const loadCourses = async () => {
+      setIsLoading(true);
+      const { courses, error } = await getMyCourses();
+      if (error) {
+        console.error('Failed to load courses:', error);
+        toast.error('Failed to load courses');
+      }
+      setDbCourses(courses);
+      setIsLoading(false);
+    };
+    loadCourses();
+  }, [isDemo]);
+
+  const handleCreateCourse = async (courseData: CourseFormData) => {
+    if (isDemo) {
+      toast.info('Course creation is not available in demo mode');
+      return;
+    }
+    const result = await createCourse({
+      title: courseData.title,
+      course_code: courseData.courseCode,
+      description: courseData.description,
+      semester: courseData.semester,
+      credits: courseData.credits,
+    });
+    if (result.success) {
+      toast.success('Course created successfully!');
+      // Refresh courses
+      const { courses } = await getMyCourses();
+      setDbCourses(courses);
+      setIsCreateModalOpen(false);
+    } else {
+      toast.error(result.error || 'Failed to create course');
+    }
   };
 
-  const handleCourseClick = (courseId: number) => {
+  const handleCourseClick = (courseId: string | number) => {
     navigate(`/courses/${courseId}`);
   };
 
   // Mock data - only shown in demo mode
   const mockCourses = [
     {
-      id: 1,
+      id: "1",
       title: "Molecular Biology",
       courseCode: "BIO301",
       instructor: "Dr. Sarah Chen",
@@ -60,7 +100,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
       status: "active",
     },
     {
-      id: 2,
+      id: "2",
       title: "Data Structures & Algorithms",
       courseCode: "CS202",
       instructor: "Prof. Michael Park",
@@ -73,7 +113,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
       status: "active",
     },
     {
-      id: 3,
+      id: "3",
       title: "Calculus III",
       courseCode: "MATH301",
       instructor: "Dr. Emily Watson",
@@ -86,7 +126,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
       status: "active",
     },
     {
-      id: 4,
+      id: "4",
       title: "Modern Literature",
       courseCode: "ENG205",
       instructor: "Prof. James Rivera",
@@ -100,8 +140,25 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
     },
   ];
 
+  // In demo mode show mock, otherwise show real DB courses
+  const displayCourses = isDemo
+    ? mockCourses
+    : dbCourses.map((c, idx) => ({
+        id: c.id,
+        title: c.title,
+        courseCode: c.course_code,
+        instructor: c.lecturer_name || "You",
+        description: c.description || "",
+        progress: 0,
+        students: c.student_count || 0,
+        assignments: c.assignment_count || 0,
+        nextClass: "",
+        image: c.image_url || fallbackImages[idx % fallbackImages.length],
+        status: "active",
+      }));
+
   // Show mock data only in demo mode, empty array for real auth
-  const courses = isDemo ? mockCourses : [];
+  const courses = displayCourses;
 
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
@@ -168,7 +225,12 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
 
         {/* Courses Grid */}
         <div className="p-6">
-          {filteredCourses.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-16">
+              <Loader2 className="w-12 h-12 mx-auto text-primary mb-4 animate-spin" />
+              <p className="text-muted-foreground">Loading your courses...</p>
+            </div>
+          ) : filteredCourses.length === 0 ? (
             <div className="text-center py-16">
               <BookOpen className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">No courses found</h3>

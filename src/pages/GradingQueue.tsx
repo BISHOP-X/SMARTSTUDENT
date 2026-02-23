@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import GradingPanel from "@/components/GradingPanel";
@@ -21,10 +21,12 @@ import {
   ArrowUpDown,
   Users,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from "lucide-react";
-import { mockLecturerSubmissions, getTimeAgo, type Submission } from "@/data/mockData";
+import { mockLecturerSubmissions, getTimeAgo, type Submission as MockSubmission } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
+import { getPendingSubmissions, type Submission as DbSubmission } from "@/lib/submission-service";
 
 interface GradingQueueProps {
   userRole: "student" | "lecturer";
@@ -34,6 +36,20 @@ interface GradingQueueProps {
 type SortField = "submittedAt" | "studentName" | "courseName";
 type SortOrder = "asc" | "desc";
 
+// Unified submission type for the queue
+interface QueueSubmission {
+  id: string;
+  assignmentId: string;
+  assignmentTitle: string;
+  courseId: string;
+  courseName: string;
+  studentId: string;
+  studentName: string;
+  submittedAt: string;
+  status: string;
+  maxScore: number;
+}
+
 const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
   const [activeTab, setActiveTab] = useState("grading");
   const navigate = useNavigate();
@@ -42,17 +58,59 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
   const [courseFilter, setCourseFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("submittedAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<QueueSubmission | null>(null);
   const [isGradingPanelOpen, setIsGradingPanelOpen] = useState(false);
+  const [dbSubmissions, setDbSubmissions] = useState<DbSubmission[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Show mock data only in demo mode - memoized to prevent dependency issues
-  const allSubmissions = useMemo(() => {
-    return isDemo ? mockLecturerSubmissions : [];
+  // Load real submissions from DB
+  useEffect(() => {
+    if (isDemo) return;
+    const loadSubs = async () => {
+      setIsLoading(true);
+      const { submissions, error } = await getPendingSubmissions();
+      if (error) {
+        console.error('Failed to load submissions:', error);
+      }
+      setDbSubmissions(submissions);
+      setIsLoading(false);
+    };
+    loadSubs();
   }, [isDemo]);
+
+  // Unify data: demo uses mock, real uses DB
+  const allSubmissions: QueueSubmission[] = useMemo(() => {
+    if (isDemo) {
+      return mockLecturerSubmissions.map(s => ({
+        id: s.id,
+        assignmentId: s.assignmentId,
+        assignmentTitle: s.assignmentTitle,
+        courseId: String(s.courseId),
+        courseName: s.courseName,
+        studentId: s.studentId,
+        studentName: s.studentName,
+        submittedAt: s.submittedAt,
+        status: s.status,
+        maxScore: s.maxScore,
+      }));
+    }
+    return dbSubmissions.map(s => ({
+      id: s.id,
+      assignmentId: s.assignment_id,
+      assignmentTitle: s.assignment_title || "Untitled",
+      courseId: s.course_id || "",
+      courseName: s.course_title || "Unknown Course",
+      studentId: s.student_id,
+      studentName: s.student_name || "Unknown",
+      submittedAt: s.submitted_at,
+      status: s.status,
+      maxScore: s.max_score || 100,
+    }));
+  }, [isDemo, dbSubmissions]);
 
   // Get only pending submissions
   const pendingSubmissions = useMemo(() => {
-    return allSubmissions.filter(s => s.status === "pending");
+    return allSubmissions.filter(s => s.status === "pending" || s.status === "graded");
   }, [allSubmissions]);
 
   // Get unique course names for filter dropdown
@@ -128,18 +186,17 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
     }
   };
 
-  const handleGradeSubmission = (submission: Submission) => {
+  const handleGradeSubmission = (submission: QueueSubmission) => {
     setSelectedSubmission(submission);
     setIsGradingPanelOpen(true);
   };
 
-  const handleViewAssignment = (submission: Submission) => {
+  const handleViewAssignment = (submission: QueueSubmission) => {
     navigate(`/courses/${submission.courseId}/assignments/${submission.assignmentId}`);
   };
 
   const handleSaveGrade = (submissionId: string, score: number, feedback: string) => {
     console.log("Saving grade:", { submissionId, score, feedback });
-    // TODO: API call to save manual grade
     setIsGradingPanelOpen(false);
     setSelectedSubmission(null);
   };
@@ -304,12 +361,17 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
               {/* Table Body */}
               {filteredAndSortedSubmissions.length === 0 ? (
                 <div className="text-center py-16">
-                  {!isDemo ? (
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-16 h-16 text-primary mx-auto mb-4 animate-spin" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Loading submissions...</h3>
+                    </>
+                  ) : !isDemo && allSubmissions.length === 0 ? (
                     <>
                       <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
                       <h3 className="text-lg font-semibold text-foreground mb-2">No submissions yet</h3>
                       <p className="text-muted-foreground">
-                        You're using a real account. Use Demo mode to see sample submissions to grade.
+                        Students haven't submitted any assignments yet. Create assignments in your courses to get started.
                       </p>
                     </>
                   ) : stats.totalPending === 0 ? (
@@ -427,7 +489,7 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
             setIsGradingPanelOpen(false);
             setSelectedSubmission(null);
           }}
-          submissionId={parseInt(selectedSubmission.id.replace('ls', ''))}
+          submissionId={selectedSubmission.id}
           assignmentMaxScore={selectedSubmission.maxScore}
         />
       )}

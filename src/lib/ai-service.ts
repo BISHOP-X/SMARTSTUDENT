@@ -141,24 +141,40 @@ export const generateStudyContent = async (
  */
 export const gradeSubmission = async (request: GradingRequest): Promise<GradingResponse> => {
   try {
-    const accessToken = await getAccessToken();
-    
-    const response = await fetch(getEdgeFunctionUrl('grade-submission'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(request),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
+    // Check if user is authenticated first
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
       return {
         score: null,
         feedback: null,
-        error: data.error || 'Failed to grade submission',
+        error: 'You must be logged in to use AI grading.',
+      };
+    }
+
+    console.log('[AI Service] Grading submission...', { title: request.assignmentTitle });
+
+    // Use supabase.functions.invoke - auth is automatic!
+    const { data, error } = await supabase.functions.invoke('grade-submission', {
+      body: request,
+    });
+
+    if (error) {
+      console.error('[AI Service] Grading function error:', error);
+      
+      let errorMessage = error.message;
+      if (error.context?.body) {
+        try {
+          const errorBody = typeof error.context.body === 'string' 
+            ? JSON.parse(error.context.body) 
+            : error.context.body;
+          if (errorBody?.error) errorMessage = errorBody.error;
+        } catch { /* ignore */ }
+      }
+      
+      return {
+        score: null,
+        feedback: null,
+        error: errorMessage || 'Failed to grade submission',
       };
     }
 
@@ -168,7 +184,7 @@ export const gradeSubmission = async (request: GradingRequest): Promise<GradingR
       processingTimeMs: data.processingTimeMs,
     };
   } catch (error) {
-    console.error('Grading error:', error);
+    console.error('[AI Service] Grading error:', error);
     return {
       score: null,
       feedback: null,
