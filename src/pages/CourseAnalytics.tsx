@@ -49,7 +49,7 @@ export default function CourseAnalytics() {
 
   if (!analytics) {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="flex h-screen bg-background">
         <Navigation activeTab="analytics" onTabChange={() => {}} onLogout={logout} />
         <div className="flex-1 overflow-auto">
           <div className="container mx-auto p-8">
@@ -68,7 +68,7 @@ export default function CourseAnalytics() {
   const barColors = ["#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe", "#ede9fe"];
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="flex h-screen bg-background">
       <Navigation activeTab="analytics" onTabChange={() => {}} onLogout={logout} />
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto p-8 space-y-6">
@@ -79,15 +79,15 @@ export default function CourseAnalytics() {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate(`/courses/${courseId}`)}
-                className="text-slate-400 hover:text-white hover:bg-slate-800"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-white">
+                <h1 className="text-3xl font-bold text-foreground">
                   {analytics.courseName} Analytics
                 </h1>
-                <p className="text-slate-400 mt-1">{analytics.courseCode}</p>
+                <p className="text-muted-foreground mt-1">{analytics.courseCode}</p>
               </div>
             </div>
             <Button className="bg-violet-600 hover:bg-violet-700">
@@ -98,71 +98,71 @@ export default function CourseAnalytics() {
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-slate-400">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     Total Students
                   </CardTitle>
                   <Users className="w-4 h-4 text-violet-400" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {analytics.totalStudents}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Enrolled this semester</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Enrolled this semester</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-slate-400">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     Average Grade
                   </CardTitle>
                   <TrendingUp className="w-4 h-4 text-emerald-400" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {analytics.averageGrade.toFixed(1)}%
                 </div>
                 <p className="text-xs text-emerald-500 mt-1">+2.3% from last semester</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-slate-400">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     Submission Rate
                   </CardTitle>
                   <FileText className="w-4 h-4 text-blue-400" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {analytics.submissionRate.toFixed(1)}%
                 </div>
                 <Progress value={analytics.submissionRate} className="mt-2" />
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-slate-400">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     Top Performer
                   </CardTitle>
                   <Target className="w-4 h-4 text-amber-400" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {analytics.topPerformers[0].averageGrade.toFixed(1)}%
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground/60 mt-1">
                   {analytics.topPerformers[0].studentName}
                 </p>
               </CardContent>
@@ -171,7 +171,7 @@ export default function CourseAnalytics() {
 
           {/* Main Content Tabs */}
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="bg-slate-900/50 border border-slate-800">
+            <TabsList className="bg-card/80 border border-border">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="assignments">Assignments</TabsTrigger>
               <TabsTrigger value="students">Students</TabsTrigger>
@@ -181,9 +181,9 @@ export default function CourseAnalytics() {
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Grade Distribution */}
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white">Grade Distribution</CardTitle>
+                    <CardTitle className="text-foreground">Grade Distribution</CardTitle>
                     <CardDescription>
                       Distribution of student grades across the course
                     </CardDescription>
@@ -243,7 +243,7 @@ export default function CourseAnalytics() {
                               className="w-3 h-3 rounded-sm" 
                               style={{ backgroundColor: barColors[idx] }}
                             />
-                            <span className="text-slate-400">{dist.range}</span>
+                            <span className="text-muted-foreground">{dist.range}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Progress
@@ -253,7 +253,7 @@ export default function CourseAnalytics() {
                                 ['--progress-background' as any]: barColors[idx]
                               }}
                             />
-                            <span className="text-slate-300 w-16 text-right">
+                            <span className="text-foreground/70 w-16 text-right">
                               {dist.count} ({dist.percentage.toFixed(0)}%)
                             </span>
                           </div>
@@ -264,9 +264,9 @@ export default function CourseAnalytics() {
                 </Card>
 
                 {/* Performance Over Time */}
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white">Performance Trend</CardTitle>
+                    <CardTitle className="text-foreground">Performance Trend</CardTitle>
                     <CardDescription>
                       Average scores and submission counts over time
                     </CardDescription>
@@ -310,7 +310,7 @@ export default function CourseAnalytics() {
                     <div className="mt-4 flex items-center justify-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-violet-500"></div>
-                        <span className="text-slate-400">Average Score</span>
+                        <span className="text-muted-foreground">Average Score</span>
                       </div>
                     </div>
                   </CardContent>
@@ -320,9 +320,9 @@ export default function CourseAnalytics() {
               {/* Top & Struggling Students */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Top Performers */}
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
+                    <CardTitle className="text-foreground flex items-center gap-2">
                       <Target className="w-5 h-5 text-amber-400" />
                       Top Performers
                     </CardTitle>
@@ -335,15 +335,15 @@ export default function CourseAnalytics() {
                       {analytics.topPerformers.map((student, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700"
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-bold text-white">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-bold text-foreground">
                               #{idx + 1}
                             </div>
                             <div>
-                              <p className="font-medium text-white">{student.studentName}</p>
-                              <p className="text-xs text-slate-400">
+                              <p className="font-medium text-foreground">{student.studentName}</p>
+                              <p className="text-xs text-muted-foreground">
                                 {student.assignmentsCompleted} assignments completed
                               </p>
                             </div>
@@ -358,9 +358,9 @@ export default function CourseAnalytics() {
                 </Card>
 
                 {/* Struggling Students */}
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
+                    <CardTitle className="text-foreground flex items-center gap-2">
                       <AlertCircle className="w-5 h-5 text-orange-400" />
                       Students Needing Support
                     </CardTitle>
@@ -373,15 +373,15 @@ export default function CourseAnalytics() {
                       {analytics.strugglingStudents.map((student, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-orange-500/50 transition-all group"
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border hover:border-orange-500/50 transition-all group"
                         >
                           <div className="flex-1">
-                            <p className="font-medium text-white">{student.studentName}</p>
+                            <p className="font-medium text-foreground">{student.studentName}</p>
                             <div className="flex items-center gap-3 mt-1">
-                              <p className="text-xs text-slate-400">
+                              <p className="text-xs text-muted-foreground">
                                 {student.assignmentsCompleted} completed
                               </p>
-                              <span className="text-slate-600">•</span>
+                              <span className="text-muted-foreground">•</span>
                               <p className="text-xs text-orange-400">
                                 {student.missedDeadlines} missed
                               </p>
@@ -406,9 +406,9 @@ export default function CourseAnalytics() {
                                   Send Advice
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800">
+                              <DialogContent className="sm:max-w-[500px] bg-card border-border">
                                 <DialogHeader>
-                                  <DialogTitle className="text-white flex items-center gap-2">
+                                  <DialogTitle className="text-foreground flex items-center gap-2">
                                     <MessageSquare className="w-5 h-5 text-orange-400" />
                                     Send Advice to {student.studentName}
                                   </DialogTitle>
@@ -418,31 +418,31 @@ export default function CourseAnalytics() {
                                 </DialogHeader>
                                 <div className="space-y-4 py-4">
                                   {/* Student Performance Summary */}
-                                  <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 space-y-2">
+                                  <div className="p-3 rounded-lg bg-muted/50 border border-border space-y-2">
                                     <div className="flex items-center justify-between text-sm">
-                                      <span className="text-slate-400">Current Grade:</span>
+                                      <span className="text-muted-foreground">Current Grade:</span>
                                       <span className="text-orange-400 font-semibold">{student.averageGrade.toFixed(1)}%</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
-                                      <span className="text-slate-400">Assignments Completed:</span>
-                                      <span className="text-white">{student.assignmentsCompleted}</span>
+                                      <span className="text-muted-foreground">Assignments Completed:</span>
+                                      <span className="text-foreground">{student.assignmentsCompleted}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
-                                      <span className="text-slate-400">Missed Deadlines:</span>
+                                      <span className="text-muted-foreground">Missed Deadlines:</span>
                                       <span className="text-orange-400">{student.missedDeadlines}</span>
                                     </div>
                                   </div>
 
                                   <div className="space-y-2">
-                                    <Label htmlFor="feedback" className="text-white">Your Advice</Label>
+                                    <Label htmlFor="feedback" className="text-foreground">Your Advice</Label>
                                     <Textarea
                                       id="feedback"
                                       placeholder="Share constructive feedback and encouragement...&#10;&#10;Example: I've noticed you're having difficulty with recent assignments. Let's schedule office hours to discuss strategies that can help improve your understanding of the material."
-                                      className="min-h-[150px] bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
+                                      className="min-h-[150px] bg-muted/50 border-border text-foreground placeholder:text-muted-foreground/60"
                                       value={feedbackMessage}
                                       onChange={(e) => setFeedbackMessage(e.target.value)}
                                     />
-                                    <p className="text-xs text-slate-400">
+                                    <p className="text-xs text-muted-foreground">
                                       Be encouraging and offer specific resources or support.
                                     </p>
                                   </div>
@@ -454,14 +454,14 @@ export default function CourseAnalytics() {
                                       setFeedbackOpen(false);
                                       setFeedbackMessage("");
                                     }}
-                                    className="border-slate-700"
+                                    className="border-border"
                                   >
                                     Cancel
                                   </Button>
                                   <Button
                                     onClick={sendFeedback}
                                     disabled={!feedbackMessage.trim()}
-                                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                                    className="bg-orange-500 hover:bg-orange-600 text-foreground"
                                   >
                                     <Send className="w-4 h-4 mr-2" />
                                     Send Advice
@@ -480,9 +480,9 @@ export default function CourseAnalytics() {
 
             {/* Assignments Tab */}
             <TabsContent value="assignments" className="space-y-6">
-              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+              <Card className="bg-card/80 border-border backdrop-blur">
                 <CardHeader>
-                  <CardTitle className="text-white">Assignment Performance</CardTitle>
+                  <CardTitle className="text-foreground">Assignment Performance</CardTitle>
                   <CardDescription>
                     Detailed breakdown of each assignment's results
                   </CardDescription>
@@ -492,12 +492,12 @@ export default function CourseAnalytics() {
                     {analytics.assignmentPerformance.map((assignment, idx) => (
                       <div
                         key={idx}
-                        className="p-4 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-violet-500/50 transition-colors"
+                        className="p-4 rounded-lg bg-muted/50 border border-border hover:border-violet-500/50 transition-colors"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h3 className="font-semibold text-white">{assignment.assignmentTitle}</h3>
-                            <p className="text-sm text-slate-400 mt-1">
+                            <h3 className="font-semibold text-foreground">{assignment.assignmentTitle}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
                               Due: {new Date(assignment.dueDate).toLocaleDateString()}
                             </p>
                           </div>
@@ -507,19 +507,19 @@ export default function CourseAnalytics() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-xs text-slate-500 mb-1">Submission Rate</p>
+                            <p className="text-xs text-muted-foreground/60 mb-1">Submission Rate</p>
                             <Progress value={assignment.submissionRate} className="h-2" />
-                            <p className="text-xs text-slate-400 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               {assignment.submissionRate.toFixed(1)}% submitted
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-slate-500 mb-1">Average Score</p>
+                            <p className="text-xs text-muted-foreground/60 mb-1">Average Score</p>
                             <Progress 
                               value={assignment.averageScore} 
                               className="h-2"
                             />
-                            <p className="text-xs text-slate-400 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               {assignment.averageScore.toFixed(1)}/100
                             </p>
                           </div>
@@ -535,9 +535,9 @@ export default function CourseAnalytics() {
             <TabsContent value="students" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* All Top Performers */}
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white">All Top Performers</CardTitle>
+                    <CardTitle className="text-foreground">All Top Performers</CardTitle>
                     <CardDescription>Complete list of high-achieving students</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -545,15 +545,15 @@ export default function CourseAnalytics() {
                       {analytics.topPerformers.map((student, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50"
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center font-bold text-white">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center font-bold text-foreground">
                               {student.studentName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div>
-                              <p className="font-medium text-white">{student.studentName}</p>
-                              <p className="text-xs text-slate-400">
+                              <p className="font-medium text-foreground">{student.studentName}</p>
+                              <p className="text-xs text-muted-foreground">
                                 {student.assignmentsCompleted}/{analytics.assignmentPerformance.length} assignments
                               </p>
                             </div>
@@ -562,7 +562,7 @@ export default function CourseAnalytics() {
                             <p className="font-bold text-emerald-400">
                               {student.averageGrade.toFixed(1)}%
                             </p>
-                            <p className="text-xs text-slate-500">Average</p>
+                            <p className="text-xs text-muted-foreground/60">Average</p>
                           </div>
                         </div>
                       ))}
@@ -571,9 +571,9 @@ export default function CourseAnalytics() {
                 </Card>
 
                 {/* Students Needing Support */}
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white">Students at Risk</CardTitle>
+                    <CardTitle className="text-foreground">Students at Risk</CardTitle>
                     <CardDescription>Students who may need intervention</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -581,17 +581,17 @@ export default function CourseAnalytics() {
                       {analytics.strugglingStudents.map((student, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-orange-900/30"
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-orange-900/30"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center font-bold text-white">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center font-bold text-foreground">
                               {student.studentName.split(' ').map(n => n[0]).join('')}
                             </div>
                             <div>
-                              <p className="font-medium text-white">{student.studentName}</p>
-                              <div className="flex items-center gap-2 text-xs text-slate-400">
+                              <p className="font-medium text-foreground">{student.studentName}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <span>{student.assignmentsCompleted} completed</span>
-                                <span className="text-slate-600">•</span>
+                                <span className="text-muted-foreground">•</span>
                                 <span className="text-orange-400">{student.missedDeadlines} missed</span>
                               </div>
                             </div>

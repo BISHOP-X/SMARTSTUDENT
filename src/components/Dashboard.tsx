@@ -658,7 +658,8 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
 
         {/* Right Column - Sidebar Widgets */}
         <aside className="space-y-6">
-          {/* AI Study Insights */}
+          {/* AI Study Insights - Only show for demo mode with sample data */}
+          {isDemo && (
           <Card className="glass-card border-0 bg-gradient-to-br from-primary/5 via-info/5 to-success/5">
             <CardHeader>
               <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -695,8 +696,10 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
               </div>
             </CardContent>
           </Card>
+          )}
 
-          {/* Recent Activity */}
+          {/* Recent Activity - Only show for demo mode with sample data */}
+          {isDemo && (
           <Card className="glass-card border-0">
             <CardHeader>
               <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -760,9 +763,10 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
               </Button>
             </CardContent>
           </Card>
+          )}
 
-          <CalendarWidget />
-          <GoalTracker />
+          <CalendarWidget isDemo={isDemo} />
+          <GoalTracker isDemo={isDemo} />
         </aside>
       </div>
     </>
@@ -958,15 +962,15 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
 
         {/* Right Column - Sidebar Widgets */}
         <aside className="space-y-6">
-          <CalendarWidget />
-          <GoalTracker />
+          <CalendarWidget isDemo={isDemo} />
+          <GoalTracker isDemo={isDemo} />
         </aside>
       </div>
     </>
   );
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen bg-background">
       {/* Sidebar Navigation */}
       <Navigation 
         activeTab={activeTab} 
@@ -975,7 +979,7 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto max-h-screen">
         {/* Top Bar */}
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
@@ -999,7 +1003,12 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
         {/* Dashboard Content */}
         <div className="p-6 space-y-8">
           {/* Time-based Greeting */}
-          <TimeGreeting userName={getDisplayName()} />
+          <TimeGreeting 
+            userName={getDisplayName()} 
+            isDemo={isDemo}
+            tasksDueToday={isDemo ? 3 : pendingAssignments}
+            upcomingClasses={isDemo ? 2 : 0}
+          />
 
           {/* Role-based Dashboard Content */}
           {userRole === "student" ? renderStudentDashboard() : renderLecturerDashboard()}

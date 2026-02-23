@@ -76,7 +76,7 @@ export default function NotificationDropdown() {
       case "announcement":
         return <Megaphone className="w-4 h-4 text-purple-400" />;
       default:
-        return <Bell className="w-4 h-4 text-slate-400" />;
+        return <Bell className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -93,7 +93,7 @@ export default function NotificationDropdown() {
       case "announcement":
         return "bg-purple-500/10 border-purple-500/20";
       default:
-        return "bg-slate-500/10 border-slate-500/20";
+        return "bg-muted/30 border-muted-foreground/20";
     }
   };
 
@@ -117,10 +117,10 @@ export default function NotificationDropdown() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5 text-slate-400 hover:text-white" />
+          <Bell className="w-5 h-5 text-muted-foreground hover:text-foreground" />
           {unreadCount > 0 && (
             <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs border-2 border-slate-900"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-foreground text-xs border-2 border-slate-900"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
@@ -129,10 +129,10 @@ export default function NotificationDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-96 bg-slate-900 border-slate-800"
+        className="w-96 bg-card border-border"
       >
         <DropdownMenuLabel className="flex items-center justify-between">
-          <span className="text-white">Notifications</span>
+          <span className="text-foreground">Notifications</span>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -145,13 +145,13 @@ export default function NotificationDropdown() {
             </Button>
           )}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-slate-800" />
+        <DropdownMenuSeparator className="bg-muted" />
         
         {notifications.length === 0 ? (
           <div className="py-8 text-center">
-            <Bell className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-400 text-sm">No notifications yet</p>
-            <p className="text-slate-500 text-xs mt-1">We'll notify you when something arrives</p>
+            <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">No notifications yet</p>
+            <p className="text-muted-foreground/60 text-xs mt-1">We'll notify you when something arrives</p>
           </div>
         ) : (
           <ScrollArea className="h-[400px]">
@@ -163,7 +163,7 @@ export default function NotificationDropdown() {
                   className={`
                     p-3 rounded-lg cursor-pointer transition-all border
                     ${notification.isRead 
-                      ? "bg-slate-900/50 border-transparent hover:bg-slate-800/50" 
+                      ? "bg-card/50 border-transparent hover:bg-muted/50" 
                       : `${getNotificationColor(notification.type)} border`
                     }
                   `}
@@ -174,7 +174,7 @@ export default function NotificationDropdown() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className={`text-sm font-medium ${notification.isRead ? "text-slate-300" : "text-white"}`}>
+                        <p className={`text-sm font-medium ${notification.isRead ? "text-foreground/70" : "text-foreground"}`}>
                           {notification.title}
                         </p>
                         {!notification.isRead && (
@@ -182,17 +182,17 @@ export default function NotificationDropdown() {
                             variant="ghost"
                             size="icon"
                             onClick={(e) => handleMarkAsRead(notification.id, e)}
-                            className="h-6 w-6 shrink-0 hover:bg-slate-700"
+                            className="h-6 w-6 shrink-0 hover:bg-muted"
                           >
-                            <Check className="w-3 h-3 text-slate-400" />
+                            <Check className="w-3 h-3 text-muted-foreground" />
                           </Button>
                         )}
                       </div>
-                      <p className={`text-xs mt-1 ${notification.isRead ? "text-slate-500" : "text-slate-400"}`}>
+                      <p className={`text-xs mt-1 ${notification.isRead ? "text-muted-foreground/60" : "text-muted-foreground"}`}>
                         {notification.message}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-muted-foreground/60">
                           {formatTimeAgo(notification.createdAt)}
                         </span>
                         {!notification.isRead && (
@@ -209,7 +209,7 @@ export default function NotificationDropdown() {
 
         {notifications.length > 0 && (
           <>
-            <DropdownMenuSeparator className="bg-slate-800" />
+            <DropdownMenuSeparator className="bg-muted" />
             <DropdownMenuItem 
               className="text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 cursor-pointer justify-center"
               onClick={() => console.log("View all notifications")}

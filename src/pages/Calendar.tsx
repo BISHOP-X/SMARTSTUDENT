@@ -236,7 +236,7 @@ export default function Calendar() {
       health: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
       personal: "bg-amber-500/20 text-amber-400 border-amber-500/30",
       career: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-      other: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+      other: "bg-muted/50 text-muted-foreground border-muted-foreground/20",
     };
     return colors[eventCategory || "other"] || colors.other;
   };
@@ -248,18 +248,18 @@ export default function Calendar() {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="flex h-screen bg-background">
       <Navigation activeTab="calendar" onTabChange={() => {}} onLogout={() => {}} />
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto p-8 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                 <CalendarIcon className="w-8 h-8 text-violet-400" />
                 Calendar
               </h1>
-              <p className="text-slate-400 mt-1">
+              <p className="text-muted-foreground mt-1">
                 Manage your academic deadlines and personal goals
               </p>
             </div>
@@ -270,43 +270,43 @@ export default function Calendar() {
                   Create Goal
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-slate-900 border-slate-800">
+              <DialogContent className="bg-card border-border">
                 <DialogHeader>
-                  <DialogTitle className="text-white">Create Personal Goal</DialogTitle>
+                  <DialogTitle className="text-foreground">Create Personal Goal</DialogTitle>
                   <DialogDescription>
                     Add a new goal to your calendar
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title" className="text-slate-300">Title</Label>
+                    <Label htmlFor="title" className="text-foreground/70">Title</Label>
                     <Input
                       id="title"
                       placeholder="e.g., Study for Midterm"
                       value={newGoal.title}
                       onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
+                      className="bg-muted border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-slate-300">Description (Optional)</Label>
+                    <Label htmlFor="description" className="text-foreground/70">Description (Optional)</Label>
                     <Textarea
                       id="description"
                       placeholder="Add details about your goal..."
                       value={newGoal.description}
                       onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
+                      className="bg-muted border-border text-foreground"
                       rows={3}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="category" className="text-slate-300">Category</Label>
+                      <Label htmlFor="category" className="text-foreground/70">Category</Label>
                       <Select value={newGoal.category} onValueChange={(value) => setNewGoal({ ...newGoal, category: value })}>
-                        <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                        <SelectTrigger className="bg-muted border-border text-foreground">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectContent className="bg-muted border-border">
                           <SelectItem value="study">Study</SelectItem>
                           <SelectItem value="personal">Personal</SelectItem>
                           <SelectItem value="health">Health</SelectItem>
@@ -316,13 +316,13 @@ export default function Calendar() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="time" className="text-slate-300">Time</Label>
+                      <Label htmlFor="time" className="text-foreground/70">Time</Label>
                       <Input
                         id="time"
                         type="time"
                         value={newGoal.time}
                         onChange={(e) => setNewGoal({ ...newGoal, time: e.target.value })}
-                        className="bg-slate-800 border-slate-700 text-white"
+                        className="bg-muted border-border text-foreground"
                       />
                     </div>
                   </div>
@@ -348,24 +348,24 @@ export default function Calendar() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Calendar */}
             <div className="lg:col-span-2">
-              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+              <Card className="bg-card/80 border-border backdrop-blur">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-white text-xl">{monthName}</CardTitle>
+                    <CardTitle className="text-foreground text-xl">{monthName}</CardTitle>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={previousMonth}
-                        className="bg-slate-800 border-slate-700 hover:bg-slate-700"
+                        className="bg-muted border-border hover:bg-muted"
                       >
-                        <ChevronLeft className="w-4 h-4 text-slate-300" />
+                        <ChevronLeft className="w-4 h-4 text-foreground/70" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setCurrentDate(new Date())}
-                        className="bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300"
+                        className="bg-muted border-border hover:bg-muted text-foreground/70"
                       >
                         Today
                       </Button>
@@ -373,9 +373,9 @@ export default function Calendar() {
                         variant="outline"
                         size="icon"
                         onClick={nextMonth}
-                        className="bg-slate-800 border-slate-700 hover:bg-slate-700"
+                        className="bg-muted border-border hover:bg-muted"
                       >
-                        <ChevronRight className="w-4 h-4 text-slate-300" />
+                        <ChevronRight className="w-4 h-4 text-foreground/70" />
                       </Button>
                     </div>
                   </div>
@@ -384,7 +384,7 @@ export default function Calendar() {
                   {/* Day headers */}
                   <div className="grid grid-cols-7 gap-2 mb-2">
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                      <div key={day} className="text-center text-sm font-medium text-slate-400 py-2">
+                      <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
                         {day}
                       </div>
                     ))}
@@ -407,8 +407,8 @@ export default function Calendar() {
                           className={`
                             aspect-square p-2 rounded-lg border transition-all
                             ${isToday(day) 
-                              ? "bg-violet-600 border-violet-500 text-white font-bold" 
-                              : "bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-800 hover:border-violet-500/50"
+                              ? "bg-violet-600 border-violet-500 text-foreground font-bold" 
+                              : "bg-muted/50 border-border text-foreground/70 hover:bg-muted hover:border-violet-500/50"
                             }
                             ${selectedDate?.getDate() === day && 
                               selectedDate?.getMonth() === currentDate.getMonth() &&
@@ -434,7 +434,7 @@ export default function Calendar() {
                                 />
                               ))}
                               {dayEvents.length > 3 && (
-                                <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                               )}
                             </div>
                           )}
@@ -450,9 +450,9 @@ export default function Calendar() {
             <div className="space-y-4">
               {/* Selected Date Events */}
               {selectedDate ? (
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white text-lg">
+                    <CardTitle className="text-foreground text-lg">
                       {selectedDate.toLocaleDateString("en-US", { 
                         weekday: "long", 
                         month: "long", 
@@ -466,29 +466,29 @@ export default function Calendar() {
                   <CardContent>
                     <div className="space-y-2">
                       {getEventsForDate(selectedDate, userRole).length === 0 ? (
-                        <p className="text-slate-400 text-sm text-center py-4">
+                        <p className="text-muted-foreground text-sm text-center py-4">
                           No events scheduled
                         </p>
                       ) : (
                         getEventsForDate(selectedDate, userRole).map((event) => (
                           <div
                             key={event.id}
-                            className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-violet-500/50 transition-colors"
+                            className="p-3 rounded-lg bg-muted/50 border border-border hover:border-violet-500/50 transition-colors"
                           >
                             <div className="flex items-start gap-2">
                               <div className="mt-1">{getEventIcon(event)}</div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-white text-sm truncate">
+                                <p className="font-medium text-foreground text-sm truncate">
                                   {event.title}
                                 </p>
                                 {event.courseName && (
-                                  <p className="text-xs text-slate-400 mt-1">{event.courseName}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{event.courseName}</p>
                                 )}
                                 <div className="flex items-center gap-2 mt-2">
                                   <Badge className={`text-xs ${getEventColor(event)}`}>
                                     {event.type === "assignment" ? "Assignment" : event.category}
                                   </Badge>
-                                  <span className="text-xs text-slate-500">
+                                  <span className="text-xs text-muted-foreground/60">
                                     {new Date(event.date).toLocaleTimeString("en-US", { 
                                       hour: "2-digit", 
                                       minute: "2-digit" 
@@ -505,9 +505,9 @@ export default function Calendar() {
                 </Card>
               ) : (
                 /* Upcoming Events */
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white text-lg">Upcoming Events</CardTitle>
+                    <CardTitle className="text-foreground text-lg">Upcoming Events</CardTitle>
                     <CardDescription>Next 7 days</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -524,22 +524,22 @@ export default function Calendar() {
                         .map((event) => (
                           <div
                             key={event.id}
-                            className="p-3 rounded-lg bg-slate-800/50 border border-slate-700"
+                            className="p-3 rounded-lg bg-muted/50 border border-border"
                           >
                             <div className="flex items-start gap-2">
                               <div className="mt-1">{getEventIcon(event)}</div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-white text-sm truncate">
+                                <p className="font-medium text-foreground text-sm truncate">
                                   {event.title}
                                 </p>
                                 {event.courseName && (
-                                  <p className="text-xs text-slate-400 mt-1">{event.courseName}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{event.courseName}</p>
                                 )}
                                 <div className="flex items-center gap-2 mt-2">
                                   <Badge className={`text-xs ${getEventColor(event)}`}>
                                     {event.type === "assignment" ? "Assignment" : event.category}
                                   </Badge>
-                                  <span className="text-xs text-slate-500">
+                                  <span className="text-xs text-muted-foreground/60">
                                     {new Date(event.date).toLocaleDateString("en-US", { 
                                       month: "short", 
                                       day: "numeric" 
@@ -556,31 +556,31 @@ export default function Calendar() {
               )}
 
               {/* Legend */}
-              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+              <Card className="bg-card/80 border-border backdrop-blur">
                 <CardHeader>
-                  <CardTitle className="text-white text-sm">Event Types</CardTitle>
+                  <CardTitle className="text-foreground text-sm">Event Types</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-violet-500"></div>
-                      <span className="text-slate-300">Assignments</span>
+                      <span className="text-foreground/70">Assignments</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <span className="text-slate-300">Overdue</span>
+                      <span className="text-foreground/70">Overdue</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <span className="text-slate-300">Study Goals</span>
+                      <span className="text-foreground/70">Study Goals</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                      <span className="text-slate-300">Health Goals</span>
+                      <span className="text-foreground/70">Health Goals</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                      <span className="text-slate-300">Personal Goals</span>
+                      <span className="text-foreground/70">Personal Goals</span>
                     </div>
                   </div>
                 </CardContent>

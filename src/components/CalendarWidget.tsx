@@ -1,7 +1,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const CalendarWidget = () => {
+interface CalendarWidgetProps {
+  isDemo?: boolean;
+}
+
+const CalendarWidget = ({ isDemo = true }: CalendarWidgetProps) => {
   const today = new Date();
   const currentMonth = today.toLocaleString('default', { month: 'long' });
   const currentYear = today.getFullYear();
@@ -13,12 +17,12 @@ const CalendarWidget = () => {
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const emptyDays = Array.from({ length: firstDayOfMonth }, (_, i) => i);
   
-  // Sample events
-  const events = [
+  // Sample events - only show for demo mode
+  const events = isDemo ? [
     { day: today.getDate(), title: "Biology Lab", time: "10:00 AM", color: "bg-primary" },
     { day: today.getDate() + 2, title: "CS Assignment Due", time: "11:59 PM", color: "bg-accent" },
     { day: today.getDate() + 5, title: "Math Midterm", time: "2:00 PM", color: "bg-destructive" },
-  ];
+  ] : [];
 
   const hasEvent = (day: number) => events.find(e => e.day === day);
 
@@ -78,18 +82,22 @@ const CalendarWidget = () => {
       {/* Upcoming Events */}
       <div className="space-y-3">
         <h4 className="text-sm font-medium text-muted-foreground">Upcoming</h4>
-        {events.slice(0, 3).map((event, i) => (
-          <div 
-            key={i} 
-            className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
-          >
-            <div className={`w-1 h-10 rounded-full ${event.color}`} />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">{event.title}</p>
-              <p className="text-xs text-muted-foreground">{event.time}</p>
+        {events.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-3">No upcoming events</p>
+        ) : (
+          events.slice(0, 3).map((event, i) => (
+            <div 
+              key={i} 
+              className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer"
+            >
+              <div className={`w-1 h-10 rounded-full ${event.color}`} />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">{event.title}</p>
+                <p className="text-xs text-muted-foreground">{event.time}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

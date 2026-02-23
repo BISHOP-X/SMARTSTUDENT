@@ -5,9 +5,12 @@ import eveningBanner from "@/assets/evening-banner.jpg";
 
 interface TimeGreetingProps {
   userName: string;
+  isDemo?: boolean;
+  tasksDueToday?: number;
+  upcomingClasses?: number;
 }
 
-const TimeGreeting = ({ userName }: TimeGreetingProps) => {
+const TimeGreeting = ({ userName, isDemo = true, tasksDueToday = 0, upcomingClasses = 0 }: TimeGreetingProps) => {
   const { greeting, banner, message } = useMemo(() => {
     const hour = new Date().getHours();
     
@@ -57,17 +60,23 @@ const TimeGreeting = ({ userName }: TimeGreetingProps) => {
           {message}
         </p>
 
-        {/* Stats Pills */}
-        <div className="flex flex-wrap gap-3 mt-6">
-          <div className="glass-card px-4 py-2 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            <span className="text-sm text-foreground">3 tasks due today</span>
+        {/* Stats Pills - Only show when there's actual data */}
+        {(tasksDueToday > 0 || upcomingClasses > 0) && (
+          <div className="flex flex-wrap gap-3 mt-6">
+            {tasksDueToday > 0 && (
+              <div className="glass-card px-4 py-2 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                <span className="text-sm text-foreground">{tasksDueToday} task{tasksDueToday !== 1 ? 's' : ''} due today</span>
+              </div>
+            )}
+            {upcomingClasses > 0 && (
+              <div className="glass-card px-4 py-2 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+                <span className="text-sm text-foreground">{upcomingClasses} class{upcomingClasses !== 1 ? 'es' : ''} upcoming</span>
+              </div>
+            )}
           </div>
-          <div className="glass-card px-4 py-2 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary" />
-            <span className="text-sm text-foreground">2 classes upcoming</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

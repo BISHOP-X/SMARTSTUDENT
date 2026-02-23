@@ -83,7 +83,7 @@ export default function Goals() {
       personal: "bg-amber-500/20 text-amber-400 border-amber-500/30",
       health: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
       career: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-      other: "bg-slate-500/20 text-slate-400 border-slate-500/30",
+      other: "bg-muted/50 text-muted-foreground border-muted-foreground/20",
     };
     return colors[category];
   };
@@ -122,18 +122,18 @@ export default function Goals() {
   ).length;
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="flex h-screen bg-background">
       <Navigation activeTab="goals" onTabChange={() => {}} onLogout={() => {}} />
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto p-8 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                 <Target className="w-8 h-8 text-violet-400" />
                 Personal Goals
               </h1>
-              <p className="text-slate-400 mt-1">
+              <p className="text-muted-foreground mt-1">
                 Track and manage your personal objectives
               </p>
             </div>
@@ -144,43 +144,43 @@ export default function Goals() {
                   Create Goal
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-slate-900 border-slate-800">
+              <DialogContent className="bg-card border-border">
                 <DialogHeader>
-                  <DialogTitle className="text-white">Create New Goal</DialogTitle>
+                  <DialogTitle className="text-foreground">Create New Goal</DialogTitle>
                   <DialogDescription>
                     Set a new personal goal to track your progress
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title" className="text-slate-300">Title *</Label>
+                    <Label htmlFor="title" className="text-foreground/70">Title *</Label>
                     <Input
                       id="title"
                       placeholder="e.g., Complete Data Structures Study Guide"
                       value={newGoal.title}
                       onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
+                      className="bg-muted border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-slate-300">Description</Label>
+                    <Label htmlFor="description" className="text-foreground/70">Description</Label>
                     <Textarea
                       id="description"
                       placeholder="Add details about your goal..."
                       value={newGoal.description}
                       onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
+                      className="bg-muted border-border text-foreground"
                       rows={3}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="category" className="text-slate-300">Category *</Label>
+                      <Label htmlFor="category" className="text-foreground/70">Category *</Label>
                       <Select value={newGoal.category} onValueChange={(value) => setNewGoal({ ...newGoal, category: value as PersonalGoal["category"] })}>
-                        <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                        <SelectTrigger className="bg-muted border-border text-foreground">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectContent className="bg-muted border-border">
                           <SelectItem value="study">Study</SelectItem>
                           <SelectItem value="personal">Personal</SelectItem>
                           <SelectItem value="health">Health</SelectItem>
@@ -190,13 +190,13 @@ export default function Goals() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="eventDate" className="text-slate-300">Target Date *</Label>
+                      <Label htmlFor="eventDate" className="text-foreground/70">Target Date *</Label>
                       <Input
                         id="eventDate"
                         type="datetime-local"
                         value={newGoal.eventDate}
                         onChange={(e) => setNewGoal({ ...newGoal, eventDate: e.target.value })}
-                        className="bg-slate-800 border-slate-700 text-white"
+                        className="bg-muted border-border text-foreground"
                       />
                     </div>
                   </div>
@@ -214,36 +214,36 @@ export default function Goals() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-slate-400">Total Goals</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Goals</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{totalGoals}</div>
+                <div className="text-2xl font-bold text-foreground">{totalGoals}</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-slate-400">Completed</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Completed</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-emerald-400">{completedGoals}</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-slate-400">Completion Rate</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Completion Rate</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-violet-400">{completionRate}%</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-slate-400">Upcoming</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-400">{upcomingGoals}</div>
@@ -252,18 +252,18 @@ export default function Goals() {
           </div>
 
           {/* Filters */}
-          <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+          <Card className="bg-card/80 border-border backdrop-blur">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
-                <Filter className="w-4 h-4 text-slate-400" />
+                <Filter className="w-4 h-4 text-muted-foreground" />
                 <div className="flex items-center gap-4 flex-1">
                   <div className="flex items-center gap-2">
-                    <Label className="text-slate-400 text-sm">Category:</Label>
+                    <Label className="text-muted-foreground text-sm">Category:</Label>
                     <Select value={filterCategory} onValueChange={setFilterCategory}>
-                      <SelectTrigger className="w-32 bg-slate-800 border-slate-700 text-white">
+                      <SelectTrigger className="w-32 bg-muted border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectContent className="bg-muted border-border">
                         <SelectItem value="all">All</SelectItem>
                         <SelectItem value="study">Study</SelectItem>
                         <SelectItem value="personal">Personal</SelectItem>
@@ -275,12 +275,12 @@ export default function Goals() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Label className="text-slate-400 text-sm">Status:</Label>
+                    <Label className="text-muted-foreground text-sm">Status:</Label>
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
-                      <SelectTrigger className="w-32 bg-slate-800 border-slate-700 text-white">
+                      <SelectTrigger className="w-32 bg-muted border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectContent className="bg-muted border-border">
                         <SelectItem value="all">All</SelectItem>
                         <SelectItem value="todo">To Do</SelectItem>
                         <SelectItem value="done">Done</SelectItem>
@@ -288,7 +288,7 @@ export default function Goals() {
                     </Select>
                   </div>
 
-                  <div className="text-sm text-slate-400 ml-auto">
+                  <div className="text-sm text-muted-foreground ml-auto">
                     Showing {filteredGoals.length} of {totalGoals} goals
                   </div>
                 </div>
@@ -298,7 +298,7 @@ export default function Goals() {
 
           {/* Goals List */}
           <Tabs defaultValue="todo" className="space-y-6">
-            <TabsList className="bg-slate-900/50 border border-slate-800">
+            <TabsList className="bg-card/80 border border-border">
               <TabsTrigger value="todo">
                 To Do ({todoGoals.length})
               </TabsTrigger>
@@ -312,11 +312,11 @@ export default function Goals() {
 
             <TabsContent value="todo" className="space-y-3">
               {todoGoals.length === 0 ? (
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardContent className="pt-8 pb-8 text-center">
-                    <Target className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                    <p className="text-slate-400">No pending goals</p>
-                    <p className="text-slate-500 text-sm mt-1">Create a new goal to get started</p>
+                    <Target className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">No pending goals</p>
+                    <p className="text-muted-foreground/60 text-sm mt-1">Create a new goal to get started</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -340,11 +340,11 @@ export default function Goals() {
 
             <TabsContent value="done" className="space-y-3">
               {doneGoals.length === 0 ? (
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardContent className="pt-8 pb-8 text-center">
-                    <Check className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                    <p className="text-slate-400">No completed goals yet</p>
-                    <p className="text-slate-500 text-sm mt-1">Complete your first goal to see it here</p>
+                    <Check className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">No completed goals yet</p>
+                    <p className="text-muted-foreground/60 text-sm mt-1">Complete your first goal to see it here</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -393,41 +393,41 @@ export default function Goals() {
           {/* Edit Dialog */}
           {editingGoal && (
             <Dialog open={!!editingGoal} onOpenChange={() => setEditingGoal(null)}>
-              <DialogContent className="bg-slate-900 border-slate-800">
+              <DialogContent className="bg-card border-border">
                 <DialogHeader>
-                  <DialogTitle className="text-white">Edit Goal</DialogTitle>
+                  <DialogTitle className="text-foreground">Edit Goal</DialogTitle>
                   <DialogDescription>
                     Update your goal details
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="edit-title" className="text-slate-300">Title</Label>
+                    <Label htmlFor="edit-title" className="text-foreground/70">Title</Label>
                     <Input
                       id="edit-title"
                       value={editingGoal.title}
                       onChange={(e) => setEditingGoal({ ...editingGoal, title: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
+                      className="bg-muted border-border text-foreground"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-description" className="text-slate-300">Description</Label>
+                    <Label htmlFor="edit-description" className="text-foreground/70">Description</Label>
                     <Textarea
                       id="edit-description"
                       value={editingGoal.description}
                       onChange={(e) => setEditingGoal({ ...editingGoal, description: e.target.value })}
-                      className="bg-slate-800 border-slate-700 text-white"
+                      className="bg-muted border-border text-foreground"
                       rows={3}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="edit-category" className="text-slate-300">Category</Label>
+                      <Label htmlFor="edit-category" className="text-foreground/70">Category</Label>
                       <Select value={editingGoal.category} onValueChange={(value) => setEditingGoal({ ...editingGoal, category: value as PersonalGoal["category"] })}>
-                        <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                        <SelectTrigger className="bg-muted border-border text-foreground">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectContent className="bg-muted border-border">
                           <SelectItem value="study">Study</SelectItem>
                           <SelectItem value="personal">Personal</SelectItem>
                           <SelectItem value="health">Health</SelectItem>
@@ -437,13 +437,13 @@ export default function Goals() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="edit-eventDate" className="text-slate-300">Target Date</Label>
+                      <Label htmlFor="edit-eventDate" className="text-foreground/70">Target Date</Label>
                       <Input
                         id="edit-eventDate"
                         type="datetime-local"
                         value={editingGoal.eventDate.slice(0, 16)}
                         onChange={(e) => setEditingGoal({ ...editingGoal, eventDate: e.target.value })}
-                        className="bg-slate-800 border-slate-700 text-white"
+                        className="bg-muted border-border text-foreground"
                       />
                     </div>
                   </div>
@@ -488,7 +488,7 @@ function GoalCard({
   const overdue = goal.status === "todo" && isOverdue(goal.eventDate);
 
   return (
-    <Card className={`bg-slate-900/50 border-slate-800 backdrop-blur hover:border-violet-500/50 transition-all ${
+    <Card className={`bg-card/80 border-border backdrop-blur hover:border-violet-500/50 transition-all ${
       goal.status === "done" ? "opacity-60" : ""
     }`}>
       <CardContent className="pt-4">
@@ -501,17 +501,17 @@ function GoalCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
-                <h3 className={`font-semibold text-white ${goal.status === "done" ? "line-through" : ""}`}>
+                <h3 className={`font-semibold text-foreground ${goal.status === "done" ? "line-through" : ""}`}>
                   {goal.title}
                 </h3>
                 {goal.description && (
-                  <p className="text-sm text-slate-400 mt-1">{goal.description}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>
                 )}
                 <div className="flex items-center gap-3 mt-3">
                   <Badge className={getCategoryColor(goal.category)}>
                     {goal.category}
                   </Badge>
-                  <div className="flex items-center gap-1.5 text-sm text-slate-400">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Calendar className="w-3.5 h-3.5" />
                     <span className={overdue ? "text-red-400" : ""}>
                       {formatDate(goal.eventDate)}
@@ -529,7 +529,7 @@ function GoalCard({
                   size="icon"
                   variant="ghost"
                   onClick={() => onEdit(goal)}
-                  className="h-8 w-8 text-slate-400 hover:text-violet-400 hover:bg-violet-500/10"
+                  className="h-8 w-8 text-muted-foreground hover:text-violet-400 hover:bg-violet-500/10"
                 >
                   <Edit2 className="w-4 h-4" />
                 </Button>
@@ -537,7 +537,7 @@ function GoalCard({
                   size="icon"
                   variant="ghost"
                   onClick={() => onDelete(goal.id)}
-                  className="h-8 w-8 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+                  className="h-8 w-8 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

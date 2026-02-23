@@ -63,7 +63,7 @@ interface GeneratedContent {
 export default function AIStudyTools() {
   const navigate = useNavigate();
   const { logout, isDemo } = useAuth();
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>(isDemo ? [
     {
       id: "f1",
       name: "Chapter_3_Cell_Biology.pdf",
@@ -81,7 +81,7 @@ export default function AIStudyTools() {
       detectedChapters: ["DNA Structure", "Replication", "Transcription", "Translation"],
       content: "DNA (deoxyribonucleic acid) is the hereditary material in humans and almost all other organisms. DNA structure consists of two strands forming a double helix. The four bases are adenine (A), guanine (G), cytosine (C), and thymine (T). DNA replication is the process by which DNA makes a copy of itself during cell division."
     }
-  ]);
+  ] : []);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("upload");
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
@@ -133,19 +133,35 @@ export default function AIStudyTools() {
         };
         setUploadedFiles(prev => [...prev, newFile]);
         
-        // Simulate processing
-        setTimeout(() => {
+        // Read the file content as text
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const textContent = e.target?.result as string;
           setUploadedFiles(prev => prev.map(f => 
             f.id === newFile.id 
               ? { 
                   ...f, 
-                  status: "ready",
-                  detectedChapters: ["Chapter 1", "Chapter 2", "Chapter 3"] 
+                  status: "ready" as const,
+                  content: textContent || undefined,
+                  detectedChapters: textContent 
+                    ? ["Section 1", "Section 2", "Section 3"] 
+                    : undefined
                 }
               : f
           ));
+          // Auto-select the newly uploaded file
+          setSelectedFile(newFile.id);
           toast.success(`${file.name} processed successfully!`);
-        }, 2000);
+        };
+        reader.onerror = () => {
+          setUploadedFiles(prev => prev.map(f => 
+            f.id === newFile.id 
+              ? { ...f, status: "error" as const }
+              : f
+          ));
+          toast.error(`Failed to read ${file.name}`);
+        };
+        reader.readAsText(file);
       });
     }
   };
@@ -394,7 +410,7 @@ export default function AIStudyTools() {
   const selectedFileData = uploadedFiles.find(f => f.id === selectedFile);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="flex min-h-screen bg-background">
       <Navigation activeTab="ai-tools" onTabChange={() => {}} />
       <div className="flex-1 overflow-auto pb-16 md:pb-0">
         <div className="container mx-auto p-4 md:p-8 space-y-6">
@@ -418,13 +434,13 @@ export default function AIStudyTools() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
+                  <Sparkles className="w-6 h-6 text-foreground" />
                 </div>
                 AI Study Tools
               </h1>
-              <p className="text-slate-400 mt-2">
+              <p className="text-muted-foreground mt-2">
                 Upload your study materials and let AI help you learn better
               </p>
             </div>
@@ -436,34 +452,34 @@ export default function AIStudyTools() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-400">Materials Uploaded</p>
-                    <p className="text-2xl font-bold text-white mt-1">{uploadedFiles.length}</p>
+                    <p className="text-sm text-muted-foreground">Materials Uploaded</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">{uploadedFiles.length}</p>
                   </div>
                   <Upload className="w-8 h-8 text-violet-400" />
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-400">Content Generated</p>
-                    <p className="text-2xl font-bold text-white mt-1">{generatedContent.length}</p>
+                    <p className="text-sm text-muted-foreground">Content Generated</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">{generatedContent.length}</p>
                   </div>
                   <Brain className="w-8 h-8 text-emerald-400" />
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-400">Total Storage</p>
-                    <p className="text-2xl font-bold text-white mt-1">
+                    <p className="text-sm text-muted-foreground">Total Storage</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">
                       {formatFileSize(uploadedFiles.reduce((sum, f) => sum + f.size, 0))}
                     </p>
                   </div>
@@ -471,12 +487,12 @@ export default function AIStudyTools() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+            <Card className="bg-card/80 border-border backdrop-blur">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-400">Study Sessions</p>
-                    <p className="text-2xl font-bold text-white mt-1">12</p>
+                    <p className="text-sm text-muted-foreground">Study Sessions</p>
+                    <p className="text-2xl font-bold text-foreground mt-1">{isDemo ? 12 : generatedContent.length}</p>
                   </div>
                   <GraduationCap className="w-8 h-8 text-amber-400" />
                 </div>
@@ -486,7 +502,7 @@ export default function AIStudyTools() {
 
           {/* Main Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="bg-slate-900/50 border border-slate-800">
+            <TabsList className="bg-card/80 border border-border">
               <TabsTrigger value="upload">
                 <Upload className="w-4 h-4 mr-2" />
                 Upload & Manage
@@ -512,9 +528,9 @@ export default function AIStudyTools() {
             {/* Upload Tab */}
             <TabsContent value="upload" className="space-y-6">
               {/* Input Mode Toggle */}
-              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+              <Card className="bg-card/80 border-border backdrop-blur">
                 <CardHeader>
-                  <CardTitle className="text-white">Choose Input Method</CardTitle>
+                  <CardTitle className="text-foreground">Choose Input Method</CardTitle>
                   <CardDescription>
                     Upload a file or paste text directly
                   </CardDescription>
@@ -543,9 +559,9 @@ export default function AIStudyTools() {
 
               {inputMode === "text" ? (
                 /* Text Input Mode */
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
+                    <CardTitle className="text-foreground flex items-center gap-2">
                       <Type className="w-5 h-5" />
                       Paste Your Study Content
                     </CardTitle>
@@ -558,10 +574,10 @@ export default function AIStudyTools() {
                       placeholder="Paste your study content here... (e.g., lecture notes, textbook excerpts, article text)"
                       value={directTextInput}
                       onChange={(e) => setDirectTextInput(e.target.value)}
-                      className="min-h-[300px] bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 resize-y"
+                      className="min-h-[300px] bg-muted/50 border-border text-foreground placeholder:text-muted-foreground/60 resize-y"
                     />
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-muted-foreground">
                         {directTextInput.length} characters
                         {directTextInput.length > 100 && (
                           <span className="text-emerald-400 ml-2">✓ Ready to generate</span>
@@ -583,15 +599,15 @@ export default function AIStudyTools() {
                 </Card>
               ) : (
                 /* File Upload Mode */
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardHeader>
-                    <CardTitle className="text-white">Upload Study Materials</CardTitle>
+                    <CardTitle className="text-foreground">Upload Study Materials</CardTitle>
                     <CardDescription>
                       Upload PDFs, Word documents, or PowerPoint slides from your courses
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center hover:border-violet-600 transition-colors cursor-pointer bg-slate-800/30">
+                    <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-violet-600 transition-colors cursor-pointer bg-muted/30">
                       <input
                         type="file"
                         id="file-upload"
@@ -601,11 +617,11 @@ export default function AIStudyTools() {
                         onChange={handleFileUpload}
                       />
                       <label htmlFor="file-upload" className="cursor-pointer">
-                        <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                        <p className="text-white font-medium mb-2">
+                        <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-foreground font-medium mb-2">
                           Click to upload or drag and drop
                         </p>
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-muted-foreground">
                           PDF, DOC, DOCX, PPT, PPTX (Max 50MB each)
                         </p>
                       </label>
@@ -618,10 +634,10 @@ export default function AIStudyTools() {
                       </AlertDescription>
                     </Alert>
 
-                    <Separator className="bg-slate-800" />
+                    <Separator className="bg-border" />
 
                     <div className="space-y-3">
-                      <h3 className="text-white font-semibold flex items-center gap-2">
+                      <h3 className="text-foreground font-semibold flex items-center gap-2">
                         <FileText className="w-5 h-5" />
                         My Materials ({uploadedFiles.length})
                       </h3>
@@ -631,7 +647,7 @@ export default function AIStudyTools() {
                           className={`p-4 rounded-lg border transition-all cursor-pointer ${
                             selectedFile === file.id && inputMode === "file"
                               ? "bg-violet-600/20 border-violet-600"
-                              : "bg-slate-800/50 border-slate-700 hover:border-slate-600"
+                              : "bg-muted/50 border-border hover:border-slate-600"
                           }`}
                           onClick={() => {
                             setSelectedFile(file.id);
@@ -642,7 +658,7 @@ export default function AIStudyTools() {
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">
                                 <FileText className="w-5 h-5 text-violet-400" />
-                                <p className="text-white font-medium">{file.name}</p>
+                                <p className="text-foreground font-medium">{file.name}</p>
                                 {file.status === "processing" && (
                                   <Badge className="bg-blue-600/20 text-blue-400 border-blue-600/30">
                                     <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -661,7 +677,7 @@ export default function AIStudyTools() {
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-slate-400 mb-3">
+                              <p className="text-sm text-muted-foreground mb-3">
                                 {formatFileSize(file.size)} • Uploaded {file.uploadedAt.toLocaleDateString()}
                               </p>
                               {file.detectedChapters && (
@@ -708,9 +724,9 @@ export default function AIStudyTools() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Settings Panel */}
-                  <Card className="lg:col-span-1 bg-slate-900/50 border-slate-800 backdrop-blur">
+                  <Card className="lg:col-span-1 bg-card/80 border-border backdrop-blur">
                     <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
+                      <CardTitle className="text-foreground flex items-center gap-2">
                         <Settings2 className="w-5 h-5" />
                         Note Settings
                       </CardTitle>
@@ -721,46 +737,46 @@ export default function AIStudyTools() {
                     <CardContent className="space-y-6">
                       {/* Note Format */}
                       <div className="space-y-3">
-                        <Label className="text-white">Note Format</Label>
+                        <Label className="text-foreground">Note Format</Label>
                         <RadioGroup value={notesFormat} onValueChange={(v: any) => setNotesFormat(v)}>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700 hover:border-violet-600 transition-colors">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-violet-600 transition-colors">
                             <RadioGroupItem value="bullet" id="bullet" />
-                            <Label htmlFor="bullet" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="bullet" className="flex-1 cursor-pointer text-foreground/80">
                               Bullet Points
-                              <p className="text-xs text-slate-400 mt-1">Quick, scannable format</p>
+                              <p className="text-xs text-muted-foreground mt-1">Quick, scannable format</p>
                             </Label>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700 hover:border-violet-600 transition-colors">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-violet-600 transition-colors">
                             <RadioGroupItem value="paragraph" id="paragraph" />
-                            <Label htmlFor="paragraph" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="paragraph" className="flex-1 cursor-pointer text-foreground/80">
                               Paragraphs
-                              <p className="text-xs text-slate-400 mt-1">Detailed explanations</p>
+                              <p className="text-xs text-muted-foreground mt-1">Detailed explanations</p>
                             </Label>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700 hover:border-violet-600 transition-colors">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-violet-600 transition-colors">
                             <RadioGroupItem value="mindmap" id="mindmap" />
-                            <Label htmlFor="mindmap" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="mindmap" className="flex-1 cursor-pointer text-foreground/80">
                               Mind Map
-                              <p className="text-xs text-slate-400 mt-1">Visual connections</p>
+                              <p className="text-xs text-muted-foreground mt-1">Visual connections</p>
                             </Label>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700 hover:border-violet-600 transition-colors">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:border-violet-600 transition-colors">
                             <RadioGroupItem value="cornell" id="cornell" />
-                            <Label htmlFor="cornell" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="cornell" className="flex-1 cursor-pointer text-foreground/80">
                               Cornell Notes
-                              <p className="text-xs text-slate-400 mt-1">Structured system</p>
+                              <p className="text-xs text-muted-foreground mt-1">Structured system</p>
                             </Label>
                           </div>
                         </RadioGroup>
                       </div>
 
-                      <Separator className="bg-slate-800" />
+                      <Separator className="bg-border" />
 
                       {/* Detail Level */}
                       <div className="space-y-3">
-                        <Label className="text-white">Detail Level</Label>
+                        <Label className="text-foreground">Detail Level</Label>
                         <Select value={notesDetail} onValueChange={(v: any) => setNotesDetail(v)}>
-                          <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                          <SelectTrigger className="bg-muted border-border text-foreground">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -771,11 +787,11 @@ export default function AIStudyTools() {
                         </Select>
                       </div>
 
-                      <Separator className="bg-slate-800" />
+                      <Separator className="bg-border" />
 
                       {/* Additional Options */}
                       <div className="space-y-3">
-                        <Label className="text-white">Include</Label>
+                        <Label className="text-foreground">Include</Label>
                         <div className="space-y-3">
                           <div className="flex items-center space-x-2">
                             <Checkbox 
@@ -783,7 +799,7 @@ export default function AIStudyTools() {
                               checked={includeExamples}
                               onCheckedChange={(c) => setIncludeExamples(c as boolean)}
                             />
-                            <Label htmlFor="examples" className="text-slate-200 cursor-pointer">
+                            <Label htmlFor="examples" className="text-foreground/80 cursor-pointer">
                               Examples & Case Studies
                             </Label>
                           </div>
@@ -793,7 +809,7 @@ export default function AIStudyTools() {
                               checked={includeDiagrams}
                               onCheckedChange={(c) => setIncludeDiagrams(c as boolean)}
                             />
-                            <Label htmlFor="diagrams" className="text-slate-200 cursor-pointer">
+                            <Label htmlFor="diagrams" className="text-foreground/80 cursor-pointer">
                               Diagram Descriptions
                             </Label>
                           </div>
@@ -803,9 +819,9 @@ export default function AIStudyTools() {
                   </Card>
 
                   {/* Preview Panel */}
-                  <Card className="lg:col-span-2 bg-slate-900/50 border-slate-800 backdrop-blur">
+                  <Card className="lg:col-span-2 bg-card/80 border-border backdrop-blur">
                     <CardHeader>
-                      <CardTitle className="text-white">Selected Material</CardTitle>
+                      <CardTitle className="text-foreground">Selected Material</CardTitle>
                       <CardDescription>
                         {selectedFileData?.name}
                       </CardDescription>
@@ -813,7 +829,7 @@ export default function AIStudyTools() {
                     <CardContent className="space-y-4">
                       {selectedFileData?.detectedChapters && (
                         <div>
-                          <Label className="text-white mb-2 block">Detected Topics</Label>
+                          <Label className="text-foreground mb-2 block">Detected Topics</Label>
                           <div className="flex flex-wrap gap-2">
                             {selectedFileData.detectedChapters.map((chapter, idx) => (
                               <Badge key={idx} className="bg-violet-600/20 text-violet-300 border-violet-600/30">
@@ -834,7 +850,7 @@ export default function AIStudyTools() {
 
                       <Button 
                         onClick={generateNotes} 
-                        className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+                        className="w-full bg-violet-600 hover:bg-violet-700 text-foreground"
                         size="lg"
                         disabled={isGenerating}
                       >
@@ -870,9 +886,9 @@ export default function AIStudyTools() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Settings Panel */}
-                  <Card className="lg:col-span-1 bg-slate-900/50 border-slate-800 backdrop-blur">
+                  <Card className="lg:col-span-1 bg-card/80 border-border backdrop-blur">
                     <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
+                      <CardTitle className="text-foreground flex items-center gap-2">
                         <Settings2 className="w-5 h-5" />
                         Summary Settings
                       </CardTitle>
@@ -883,34 +899,34 @@ export default function AIStudyTools() {
                     <CardContent className="space-y-6">
                       {/* Length */}
                       <div className="space-y-3">
-                        <Label className="text-white">Summary Length</Label>
+                        <Label className="text-foreground">Summary Length</Label>
                         <RadioGroup value={summaryLength} onValueChange={(v: any) => setSummaryLength(v)}>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border">
                             <RadioGroupItem value="brief" id="brief" />
-                            <Label htmlFor="brief" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="brief" className="flex-1 cursor-pointer text-foreground/80">
                               Brief (1-2 paragraphs)
                             </Label>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border">
                             <RadioGroupItem value="moderate" id="moderate" />
-                            <Label htmlFor="moderate" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="moderate" className="flex-1 cursor-pointer text-foreground/80">
                               Moderate (3-5 paragraphs)
                             </Label>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border">
                             <RadioGroupItem value="detailed" id="detailed-summary" />
-                            <Label htmlFor="detailed-summary" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="detailed-summary" className="flex-1 cursor-pointer text-foreground/80">
                               Detailed (Full overview)
                             </Label>
                           </div>
                         </RadioGroup>
                       </div>
 
-                      <Separator className="bg-slate-800" />
+                      <Separator className="bg-border" />
 
                       {/* Focus Areas */}
                       <div className="space-y-3">
-                        <Label className="text-white">Focus On</Label>
+                        <Label className="text-foreground">Focus On</Label>
                         <div className="space-y-2">
                           {[
                             { id: "key_concepts", label: "Key Concepts" },
@@ -931,7 +947,7 @@ export default function AIStudyTools() {
                                   }
                                 }}
                               />
-                              <Label htmlFor={item.id} className="text-slate-200 cursor-pointer">
+                              <Label htmlFor={item.id} className="text-foreground/80 cursor-pointer">
                                 {item.label}
                               </Label>
                             </div>
@@ -939,7 +955,7 @@ export default function AIStudyTools() {
                         </div>
                       </div>
 
-                      <Separator className="bg-slate-800" />
+                      <Separator className="bg-border" />
 
                       <div className="flex items-center space-x-2">
                         <Checkbox 
@@ -947,7 +963,7 @@ export default function AIStudyTools() {
                           checked={includeKeyTerms}
                           onCheckedChange={(c) => setIncludeKeyTerms(c as boolean)}
                         />
-                        <Label htmlFor="keyterms" className="text-slate-200 cursor-pointer">
+                        <Label htmlFor="keyterms" className="text-foreground/80 cursor-pointer">
                           Include Key Terms Glossary
                         </Label>
                       </div>
@@ -955,9 +971,9 @@ export default function AIStudyTools() {
                   </Card>
 
                   {/* Preview Panel */}
-                  <Card className="lg:col-span-2 bg-slate-900/50 border-slate-800 backdrop-blur">
+                  <Card className="lg:col-span-2 bg-card/80 border-border backdrop-blur">
                     <CardHeader>
-                      <CardTitle className="text-white">Generate Summary</CardTitle>
+                      <CardTitle className="text-foreground">Generate Summary</CardTitle>
                       <CardDescription>
                         {selectedFileData?.name}
                       </CardDescription>
@@ -972,7 +988,7 @@ export default function AIStudyTools() {
 
                       <Button 
                         onClick={generateSummary} 
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-foreground"
                         size="lg"
                         disabled={isGenerating}
                       >
@@ -1008,9 +1024,9 @@ export default function AIStudyTools() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Settings Panel */}
-                  <Card className="lg:col-span-1 bg-slate-900/50 border-slate-800 backdrop-blur">
+                  <Card className="lg:col-span-1 bg-card/80 border-border backdrop-blur">
                     <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
+                      <CardTitle className="text-foreground flex items-center gap-2">
                         <Settings2 className="w-5 h-5" />
                         Question Settings
                       </CardTitle>
@@ -1021,9 +1037,9 @@ export default function AIStudyTools() {
                     <CardContent className="space-y-6">
                       {/* Difficulty */}
                       <div className="space-y-3">
-                        <Label className="text-white">Difficulty Level</Label>
+                        <Label className="text-foreground">Difficulty Level</Label>
                         <Select value={questionDifficulty} onValueChange={(v: any) => setQuestionDifficulty(v)}>
-                          <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                          <SelectTrigger className="bg-muted border-border text-foreground">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -1038,7 +1054,7 @@ export default function AIStudyTools() {
                       {/* Number of Questions */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <Label className="text-white">Number of Questions</Label>
+                          <Label className="text-foreground">Number of Questions</Label>
                           <Badge variant="outline" className="text-violet-400">
                             {questionCount}
                           </Badge>
@@ -1051,18 +1067,18 @@ export default function AIStudyTools() {
                           step={5}
                           className="py-4"
                         />
-                        <div className="flex justify-between text-xs text-slate-400">
+                        <div className="flex justify-between text-xs text-muted-foreground">
                           <span>5</span>
                           <span>25</span>
                           <span>50</span>
                         </div>
                       </div>
 
-                      <Separator className="bg-slate-800" />
+                      <Separator className="bg-border" />
 
                       {/* Question Types */}
                       <div className="space-y-3">
-                        <Label className="text-white">Question Types</Label>
+                        <Label className="text-foreground">Question Types</Label>
                         <div className="space-y-2">
                           {[
                             { id: "multiple_choice", label: "Multiple Choice" },
@@ -1083,7 +1099,7 @@ export default function AIStudyTools() {
                                   }
                                 }}
                               />
-                              <Label htmlFor={type.id} className="text-slate-200 cursor-pointer">
+                              <Label htmlFor={type.id} className="text-foreground/80 cursor-pointer">
                                 {type.label}
                               </Label>
                             </div>
@@ -1091,12 +1107,12 @@ export default function AIStudyTools() {
                         </div>
                       </div>
 
-                      <Separator className="bg-slate-800" />
+                      <Separator className="bg-border" />
 
                       {/* Chapter Selection */}
                       {selectedFileData?.detectedChapters && (
                         <div className="space-y-3">
-                          <Label className="text-white">Select Topics (Optional)</Label>
+                          <Label className="text-foreground">Select Topics (Optional)</Label>
                           <div className="space-y-2 max-h-40 overflow-y-auto">
                             {selectedFileData.detectedChapters.map((chapter, idx) => (
                               <div key={idx} className="flex items-center space-x-2">
@@ -1111,7 +1127,7 @@ export default function AIStudyTools() {
                                     }
                                   }}
                                 />
-                                <Label htmlFor={`chapter-${idx}`} className="text-slate-200 cursor-pointer text-sm">
+                                <Label htmlFor={`chapter-${idx}`} className="text-foreground/80 cursor-pointer text-sm">
                                   {chapter}
                                 </Label>
                               </div>
@@ -1120,24 +1136,24 @@ export default function AIStudyTools() {
                         </div>
                       )}
 
-                      <Separator className="bg-slate-800" />
+                      <Separator className="bg-border" />
 
                       {/* Mode */}
                       <div className="space-y-3">
-                        <Label className="text-white">Mode</Label>
+                        <Label className="text-foreground">Mode</Label>
                         <RadioGroup value={practiceMode} onValueChange={(v: any) => setPracticeMode(v)}>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border">
                             <RadioGroupItem value="practice" id="practice" />
-                            <Label htmlFor="practice" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="practice" className="flex-1 cursor-pointer text-foreground/80">
                               Practice Mode
-                              <p className="text-xs text-slate-400 mt-1">Instant feedback</p>
+                              <p className="text-xs text-muted-foreground mt-1">Instant feedback</p>
                             </Label>
                           </div>
-                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-slate-700">
+                          <div className="flex items-center space-x-2 p-3 rounded-lg border border-border">
                             <RadioGroupItem value="test" id="test" />
-                            <Label htmlFor="test" className="flex-1 cursor-pointer text-slate-200">
+                            <Label htmlFor="test" className="flex-1 cursor-pointer text-foreground/80">
                               Test Mode
-                              <p className="text-xs text-slate-400 mt-1">Grade at end</p>
+                              <p className="text-xs text-muted-foreground mt-1">Grade at end</p>
                             </Label>
                           </div>
                         </RadioGroup>
@@ -1151,7 +1167,7 @@ export default function AIStudyTools() {
                             checked={includeExplanations}
                             onCheckedChange={(c) => setIncludeExplanations(c as boolean)}
                           />
-                          <Label htmlFor="explanations" className="text-slate-200 cursor-pointer">
+                          <Label htmlFor="explanations" className="text-foreground/80 cursor-pointer">
                             Include Answer Explanations
                           </Label>
                         </div>
@@ -1160,7 +1176,7 @@ export default function AIStudyTools() {
                       {/* Time Limit */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <Label className="text-white">Time Limit (minutes)</Label>
+                          <Label className="text-foreground">Time Limit (minutes)</Label>
                           <Badge variant="outline" className="text-violet-400">
                             {timeLimit === 0 ? "Unlimited" : `${timeLimit} min`}
                           </Badge>
@@ -1178,9 +1194,9 @@ export default function AIStudyTools() {
                   </Card>
 
                   {/* Preview Panel */}
-                  <Card className="lg:col-span-2 bg-slate-900/50 border-slate-800 backdrop-blur">
+                  <Card className="lg:col-span-2 bg-card/80 border-border backdrop-blur">
                     <CardHeader>
-                      <CardTitle className="text-white">Generate Practice Questions</CardTitle>
+                      <CardTitle className="text-foreground">Generate Practice Questions</CardTitle>
                       <CardDescription>
                         {selectedFileData?.name}
                       </CardDescription>
@@ -1188,21 +1204,21 @@ export default function AIStudyTools() {
                     <CardContent className="space-y-4">
                       {/* Configuration Summary */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                          <p className="text-xs text-slate-400 mb-1">Questions</p>
-                          <p className="text-lg font-semibold text-white">{questionCount}</p>
+                        <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                          <p className="text-xs text-muted-foreground mb-1">Questions</p>
+                          <p className="text-lg font-semibold text-foreground">{questionCount}</p>
                         </div>
-                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                          <p className="text-xs text-slate-400 mb-1">Difficulty</p>
-                          <p className="text-lg font-semibold text-white capitalize">{questionDifficulty}</p>
+                        <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                          <p className="text-xs text-muted-foreground mb-1">Difficulty</p>
+                          <p className="text-lg font-semibold text-foreground capitalize">{questionDifficulty}</p>
                         </div>
-                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                          <p className="text-xs text-slate-400 mb-1">Types</p>
-                          <p className="text-lg font-semibold text-white">{questionTypes.length}</p>
+                        <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                          <p className="text-xs text-muted-foreground mb-1">Types</p>
+                          <p className="text-lg font-semibold text-foreground">{questionTypes.length}</p>
                         </div>
-                        <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
-                          <p className="text-xs text-slate-400 mb-1">Mode</p>
-                          <p className="text-lg font-semibold text-white capitalize">{practiceMode}</p>
+                        <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                          <p className="text-xs text-muted-foreground mb-1">Mode</p>
+                          <p className="text-lg font-semibold text-foreground capitalize">{practiceMode}</p>
                         </div>
                       </div>
 
@@ -1226,7 +1242,7 @@ export default function AIStudyTools() {
 
                       <Button 
                         onClick={generateQuestions} 
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-foreground"
                         size="lg"
                         disabled={isGenerating || questionTypes.length === 0}
                       >
@@ -1257,11 +1273,11 @@ export default function AIStudyTools() {
             {/* Generated Content Tab */}
             <TabsContent value="generated" className="space-y-4">
               {generatedContent.length === 0 ? (
-                <Card className="bg-slate-900/50 border-slate-800 backdrop-blur">
+                <Card className="bg-card/80 border-border backdrop-blur">
                   <CardContent className="pt-12 pb-12 text-center">
-                    <BookOpen className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">No Content Generated Yet</h3>
-                    <p className="text-slate-400 max-w-md mx-auto">
+                    <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-foreground mb-2">No Content Generated Yet</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
                       Upload materials and use the AI tools to generate study notes, summaries, and practice questions
                     </p>
                   </CardContent>
@@ -1269,7 +1285,7 @@ export default function AIStudyTools() {
               ) : (
                 <div className="space-y-4">
                   {generatedContent.map(content => (
-                    <Card key={content.id} className="bg-slate-900/50 border-slate-800 backdrop-blur hover:border-violet-600 transition-colors">
+                    <Card key={content.id} className="bg-card/80 border-border backdrop-blur hover:border-violet-600 transition-colors">
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -1277,7 +1293,7 @@ export default function AIStudyTools() {
                               {content.type === "notes" && <FileText className="w-5 h-5 text-violet-400" />}
                               {content.type === "summary" && <MessageSquare className="w-5 h-5 text-emerald-400" />}
                               {content.type === "questions" && <ListChecks className="w-5 h-5 text-blue-400" />}
-                              <CardTitle className="text-white">{content.title}</CardTitle>
+                              <CardTitle className="text-foreground">{content.title}</CardTitle>
                             </div>
                             <CardDescription>
                               Created {content.createdAt.toLocaleString()}
@@ -1288,7 +1304,7 @@ export default function AIStudyTools() {
                               variant="outline"
                               size="sm"
                               onClick={() => downloadContent(content)}
-                              className="border-slate-700"
+                              className="border-border"
                             >
                               <Download className="w-4 h-4 mr-2" />
                               Download
@@ -1305,8 +1321,8 @@ export default function AIStudyTools() {
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
-                          <pre className="text-sm text-slate-300 whitespace-pre-wrap font-mono">
+                        <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                          <pre className="text-sm text-foreground/70 whitespace-pre-wrap font-mono">
                             {content.content}
                           </pre>
                         </div>

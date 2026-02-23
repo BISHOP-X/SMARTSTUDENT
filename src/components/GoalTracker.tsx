@@ -1,8 +1,12 @@
-import { CheckCircle2, Circle, Clock, Flame } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Flame, Target } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
-const GoalTracker = () => {
-  const goals = [
+interface GoalTrackerProps {
+  isDemo?: boolean;
+}
+
+const GoalTracker = ({ isDemo = true }: GoalTrackerProps) => {
+  const goals = isDemo ? [
     {
       id: 1,
       title: "Complete Biology Module 3",
@@ -24,14 +28,14 @@ const GoalTracker = () => {
       dueDate: "Completed",
       streak: 0,
     },
-  ];
+  ] : [];
 
-  const dailyTasks = [
+  const dailyTasks = isDemo ? [
     { id: 1, title: "Review lecture notes", completed: true },
     { id: 2, title: "Submit assignment draft", completed: true },
     { id: 3, title: "Attend study group", completed: false },
     { id: 4, title: "Practice flashcards", completed: false },
-  ];
+  ] : [];
 
   const completedCount = dailyTasks.filter(t => t.completed).length;
 
@@ -39,12 +43,22 @@ const GoalTracker = () => {
     <div className="glass-card p-6 h-full">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-semibold text-foreground">Goals & Progress</h3>
+        {isDemo && (
         <div className="flex items-center gap-1.5 text-accent">
           <Flame className="w-4 h-4" />
           <span className="text-sm font-medium">12 day streak</span>
         </div>
+        )}
       </div>
 
+      {dailyTasks.length === 0 && goals.length === 0 ? (
+        <div className="text-center py-6">
+          <Target className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+          <p className="text-sm text-muted-foreground">No goals yet</p>
+          <p className="text-xs text-muted-foreground mt-1">Set goals on the Goals page</p>
+        </div>
+      ) : (
+      <>
       {/* Daily Progress */}
       <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-info/10 border border-primary/20">
         <div className="flex items-center justify-between mb-3">
@@ -103,6 +117,8 @@ const GoalTracker = () => {
           ))}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };
