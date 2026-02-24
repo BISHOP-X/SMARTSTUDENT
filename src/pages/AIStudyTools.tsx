@@ -39,6 +39,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
 import { toast } from "sonner";
 import { generateStudyContent, canUseAI } from "@/lib/ai-service";
+import { extractDocumentText } from "@/lib/extract-document-text";
 
 interface UploadedFile {
   id: string;
@@ -123,7 +124,7 @@ export default function AIStudyTools() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      Array.from(files).forEach(file => {
+      Array.from(files).forEach(async (file) => {
         const newFile: UploadedFile = {
           id: `f${Date.now()}-${Math.random()}`,
           name: file.name,
@@ -133,10 +134,9 @@ export default function AIStudyTools() {
         };
         setUploadedFiles(prev => [...prev, newFile]);
         
-        // Read the file content as text
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const textContent = e.target?.result as string;
+        try {
+          // Use proper document extraction (mammoth for docx, pdfjs for pdf, etc.)
+          const textContent = await extractDocumentText(file);
           setUploadedFiles(prev => prev.map(f => 
             f.id === newFile.id 
               ? { 
@@ -152,16 +152,15 @@ export default function AIStudyTools() {
           // Auto-select the newly uploaded file
           setSelectedFile(newFile.id);
           toast.success(`${file.name} processed successfully!`);
-        };
-        reader.onerror = () => {
+        } catch (err: any) {
+          console.error(`Failed to extract text from ${file.name}:`, err);
           setUploadedFiles(prev => prev.map(f => 
             f.id === newFile.id 
               ? { ...f, status: "error" as const }
               : f
           ));
-          toast.error(`Failed to read ${file.name}`);
-        };
-        reader.readAsText(file);
+          toast.error(err?.message || `Failed to read ${file.name}. Try pasting the text directly.`);
+        }
       });
     }
   };
@@ -630,7 +629,7 @@ export default function AIStudyTools() {
                     <Alert className="bg-blue-500/10 border-blue-500/30">
                       <AlertCircle className="w-4 h-4 text-blue-400" />
                       <AlertDescription className="text-blue-200 text-sm">
-                        <strong>Note:</strong> File content extraction requires additional setup. For now, use "Paste Text" mode for best results with real AI.
+                        <strong>Supported formats:</strong> PDF, DOCX, DOC, and TXT files. Text is extracted automatically for AI analysis.
                       </AlertDescription>
                     </Alert>
 
