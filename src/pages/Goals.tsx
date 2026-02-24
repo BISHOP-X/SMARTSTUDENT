@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Target, Calendar, Trash2, Edit2, Check, X, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Target, Calendar, Trash2, Edit2, Check, X, Filter, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { mockPersonalGoals, type PersonalGoal } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
+import { getMyGoals, createGoal, updateGoal, deleteGoal } from "@/lib/goal-service";
+import { toast } from "sonner";
 
 export default function Goals() {
   const { isDemo } = useAuth();
@@ -23,6 +25,7 @@ export default function Goals() {
   const [editingGoal, setEditingGoal] = useState<PersonalGoal | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [isLoadingGoals, setIsLoadingGoals] = useState(false);
 
   const [newGoal, setNewGoal] = useState({
     title: "",
@@ -31,41 +34,109 @@ export default function Goals() {
     category: "study" as PersonalGoal["category"],
   });
 
-  const handleCreateGoal = () => {
-    const goal: PersonalGoal = {
-      id: `pg${goals.length + 1}`,
-      userId: "student1",
-      title: newGoal.title,
-      description: newGoal.description,
-      eventDate: newGoal.eventDate,
-      status: "todo",
-      category: newGoal.category,
-      createdAt: new Date().toISOString(),
+  // Load goals from DB for real accounts
+  useEffect(() => {
+    if (isDemo) return;
+    const load = async () => {
+      setIsLoadingGoals(true);
+      const { goals: dbGoals, error } = await getMyGoals();
+      if (error) {
+        console.error('Failed to load goals:', error);
+        toast.error('Failed to load goals');
+      }
+      setGoals(dbGoals);
+      setIsLoadingGoals(false);
     };
+    load();
+  }, [isDemo]);
 
-    setGoals([...goals, goal]);
+  const handleCreateGoal = async () => {
+    if (isDemo) {
+      // Demo mode: local state only
+      const goal: PersonalGoal = {
+        id: `pg${goals.length + 1}`,
+        userId: "student1",
+        title: newGoal.title,
+        description: newGoal.description,
+        eventDate: newGoal.eventDate,
+        status: "todo",
+        category: newGoal.category,
+        createdAt: new Date().toISOString(),
+      };
+      setGoals([...goals, goal]);
+    } else {
+      // Real account: persist to DB
+      const { goal, error } = await createGoal({
+        title: newGoal.title,
+        description: newGoal.description,
+        category: newGoal.category,
+        eventDate: newGoal.eventDate,
+      });
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      if (goal) {
+        setGoals(prev => [goal, ...prev]);
+        toast.success('Goal created!');
+      }
+    }
     setIsCreateDialogOpen(false);
     setNewGoal({ title: "", description: "", eventDate: "", category: "study" });
-    console.log("Created goal:", goal);
   };
 
-  const handleToggleStatus = (goalId: string) => {
-    setGoals(goals.map(g => 
-      g.id === goalId 
-        ? { ...g, status: g.status === "todo" ? "done" : "todo" } 
-        : g
-    ));
+  const handleToggleStatus = async (goalId: string) => {
+    const target = goals.find(g => g.id === goalId);
+    if (!target) return;
+    const newStatus = target.status === "todo" ? "done" : "todo";
+
+    // Optimistic update
+    setGoals(goals.map(g => g.id === goalId ? { ...g, status: newStatus } : g));
+
+    if (!isDemo) {
+      const { error } = await updateGoal(goalId, { status: newStatus });
+      if (error) {
+        // Revert on failure
+        setGoals(goals.map(g => g.id === goalId ? { ...g, status: target.status } : g));
+        toast.error('Failed to update goal');
+      }
+    }
   };
 
-  const handleDeleteGoal = (goalId: string) => {
+  const handleDeleteGoal = async (goalId: string) => {
+    const prev = goals;
     setGoals(goals.filter(g => g.id !== goalId));
-    console.log("Deleted goal:", goalId);
+
+    if (!isDemo) {
+      const { error } = await deleteGoal(goalId);
+      if (error) {
+        setGoals(prev);
+        toast.error('Failed to delete goal');
+      } else {
+        toast.success('Goal deleted');
+      }
+    }
   };
 
-  const handleUpdateGoal = (updatedGoal: PersonalGoal) => {
+  const handleUpdateGoal = async (updatedGoal: PersonalGoal) => {
+    const prev = goals;
     setGoals(goals.map(g => g.id === updatedGoal.id ? updatedGoal : g));
     setEditingGoal(null);
-    console.log("Updated goal:", updatedGoal);
+
+    if (!isDemo) {
+      const { error } = await updateGoal(updatedGoal.id, {
+        title: updatedGoal.title,
+        description: updatedGoal.description,
+        category: updatedGoal.category,
+        eventDate: updatedGoal.eventDate,
+      });
+      if (error) {
+        setGoals(prev);
+        toast.error('Failed to update goal');
+      } else {
+        toast.success('Goal updated');
+      }
+    }
   };
 
   const filteredGoals = goals.filter(goal => {
@@ -297,6 +368,12 @@ export default function Goals() {
           </Card>
 
           {/* Goals List */}
+          {isLoadingGoals ? (
+            <div className="text-center py-16">
+              <Loader2 className="w-12 h-12 mx-auto text-violet-400 mb-4 animate-spin" />
+              <p className="text-muted-foreground">Loading your goals...</p>
+            </div>
+          ) : (
           <Tabs defaultValue="todo" className="space-y-6">
             <TabsList className="bg-card/80 border border-border">
               <TabsTrigger value="todo">
@@ -389,6 +466,7 @@ export default function Goals() {
                 ))}
             </TabsContent>
           </Tabs>
+          )}
 
           {/* Edit Dialog */}
           {editingGoal && (

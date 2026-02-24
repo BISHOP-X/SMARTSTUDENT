@@ -992,7 +992,7 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
             </div>
             <div className="flex items-center gap-3">
               <NotificationDropdown />
-              <Button variant="hero" size="sm">
+              <Button variant="hero" size="sm" onClick={() => navigate("/goals")}>
                 <Plus className="w-4 h-4" />
                 New Task
               </Button>

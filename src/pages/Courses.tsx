@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, Plus, BookOpen, Users, Clock, TrendingUp, Loader2 } from "lucide-react";
+import { Search, Filter, Plus, BookOpen, Users, Clock, TrendingUp, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import CourseCreationForm, { CourseFormData } from "@/components/CourseCreationForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { getMyCourses, createCourse, type Course } from "@/lib/course-service";
+import { getMyCourses, getAllCourses, enrollInCourse, createCourse, type Course } from "@/lib/course-service";
 import { toast } from "sonner";
 
 // Import course images (used as fallbacks)
@@ -39,6 +39,8 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [dbCourses, setDbCourses] = useState<Course[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
+  const [enrollingId, setEnrollingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Load real courses from DB for authenticated users
@@ -46,16 +48,32 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
     if (isDemo) return;
     const loadCourses = async () => {
       setIsLoading(true);
-      const { courses, error } = await getMyCourses();
-      if (error) {
-        console.error('Failed to load courses:', error);
-        toast.error('Failed to load courses');
+      if (userRole === 'student') {
+        // Students: load ALL available courses + track which are enrolled
+        const [allResult, myResult] = await Promise.all([
+          getAllCourses(),
+          getMyCourses(),
+        ]);
+        if (allResult.error) {
+          console.error('Failed to load courses:', allResult.error);
+          toast.error('Failed to load courses');
+        }
+        setDbCourses(allResult.courses);
+        const enrolledIds = new Set(myResult.courses.map(c => c.id));
+        setEnrolledCourseIds(enrolledIds);
+      } else {
+        // Lecturers: load their own courses
+        const { courses, error } = await getMyCourses();
+        if (error) {
+          console.error('Failed to load courses:', error);
+          toast.error('Failed to load courses');
+        }
+        setDbCourses(courses);
       }
-      setDbCourses(courses);
       setIsLoading(false);
     };
     loadCourses();
-  }, [isDemo]);
+  }, [isDemo, userRole]);
 
   const handleCreateCourse = async (courseData: CourseFormData) => {
     if (isDemo) {
@@ -82,6 +100,19 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
 
   const handleCourseClick = (courseId: string | number) => {
     navigate(`/courses/${courseId}`);
+  };
+
+  const handleEnroll = async (e: React.MouseEvent, courseId: string) => {
+    e.stopPropagation();
+    setEnrollingId(courseId);
+    const result = await enrollInCourse(courseId);
+    if (result.success) {
+      setEnrolledCourseIds(prev => new Set([...prev, courseId]));
+      toast.success('Enrolled successfully!');
+    } else {
+      toast.error(result.error || 'Failed to enroll');
+    }
+    setEnrollingId(null);
   };
 
   // Mock data - only shown in demo mode
@@ -147,14 +178,15 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
         id: c.id,
         title: c.title,
         courseCode: c.course_code,
-        instructor: c.lecturer_name || "You",
+        instructor: c.lecturer_name || (userRole === 'lecturer' ? "You" : ""),
         description: c.description || "",
-        progress: 0,
+        progress: enrolledCourseIds.has(c.id) ? 0 : -1,
         students: c.student_count || 0,
         assignments: c.assignment_count || 0,
         nextClass: "",
         image: c.image_url || fallbackImages[idx % fallbackImages.length],
         status: "active",
+        enrolled: enrolledCourseIds.has(c.id),
       }));
 
   // Show mock data only in demo mode, empty array for real auth
@@ -180,11 +212,11 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-3xl font-bold text-foreground mb-1">
-                  {userRole === "student" ? "My Courses" : "Courses I Teach"}
+                  {userRole === "student" ? "Courses" : "Courses I Teach"}
                 </h1>
                 <p className="text-muted-foreground">
                   {userRole === "student"
-                    ? "Continue your learning journey"
+                    ? "Browse and enroll in available courses"
                     : "Manage your courses and track student progress"}
                 </p>
               </div>
@@ -238,7 +270,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
                 {searchQuery
                   ? "Try adjusting your search or filters"
                   : !isDemo
-                  ? "You're using a real account. Use Demo mode to see sample courses."
+                  ? "No courses are available yet. Ask your lecturer to create one."
                   : userRole === "student"
                   ? "Browse the course catalog to enroll in your first course"
                   : "Create your first course to get started"}
@@ -311,8 +343,32 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
                       </div>
                     </div>
 
-                    {/* Hover Badge */}
-                    {userRole === "student" && (
+                    {/* Hover Badge / Enroll Button */}
+                    {userRole === "student" && !isDemo && (
+                      <div className="absolute top-4 right-4 z-20">
+                        {(course as any).enrolled ? (
+                          <Badge className="bg-emerald-500/90 text-white border-0">
+                            <Check className="w-3 h-3 mr-1" />
+                            Enrolled
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                            onClick={(e) => handleEnroll(e, course.id as string)}
+                            disabled={enrollingId === course.id}
+                          >
+                            {enrollingId === course.id ? (
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            ) : (
+                              <Plus className="w-3 h-3 mr-1" />
+                            )}
+                            Enroll
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    {userRole === "student" && isDemo && (
                       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">
                           <TrendingUp className="w-3 h-3" />
