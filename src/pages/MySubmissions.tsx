@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -143,7 +143,7 @@ const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
     <div className="flex min-h-screen bg-background">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} onLogout={onLogout} />
 
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pb-16 md:pb-0">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
@@ -265,8 +265,8 @@ const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
           {/* Submissions List */}
           <Card className="glass-card border-0">
             <CardContent className="p-0">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-border bg-secondary/20">
+              {/* Table Header - desktop only */}
+              <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 border-b border-border bg-secondary/20">
                 <div 
                   className="col-span-4 flex items-center gap-2 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort("courseName")}
@@ -316,9 +316,51 @@ const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
                     const isFair = percentage !== null && percentage >= 60 && percentage < 75;
 
                     return (
+                      <Fragment key={submission.id}>
+                      {/* Mobile card view */}
                       <div
-                        key={submission.id}
-                        className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-secondary/30 transition-colors cursor-pointer"
+                        className="block md:hidden px-4 py-4 hover:bg-secondary/30 transition-colors cursor-pointer border-b border-border last:border-0"
+                        onClick={() => handleViewSubmission(submission)}
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-foreground truncate">{submission.assignmentTitle}</h4>
+                            <p className="text-sm text-muted-foreground truncate mt-0.5">{submission.courseName}</p>
+                          </div>
+                          {percentage !== null ? (
+                            <div className="text-right shrink-0">
+                              <span className={`text-lg font-bold ${isExcellent ? "text-success" : isGood ? "text-primary" : isFair ? "text-amber-600" : "text-destructive"}`}>
+                                {percentage}%
+                              </span>
+                              <p className="text-xs text-muted-foreground">{finalScore}/{submission.maxScore}</p>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground shrink-0">—</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {submission.status === "graded" ? (
+                            <Badge variant="default" className="bg-success/10 text-success hover:bg-success/20 text-xs">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />Graded
+                            </Badge>
+                          ) : (
+                            <Badge variant="default" className="bg-accent/10 text-accent hover:bg-accent/20 text-xs">
+                              <Clock className="w-3 h-3 mr-1" />Pending
+                            </Badge>
+                          )}
+                          {submission.manualScore !== undefined && submission.manualScore !== null && (
+                            <Badge variant="outline" className="text-xs border-primary/30 text-primary">Manually Graded</Badge>
+                          )}
+                          {submission.aiScore !== undefined && submission.aiScore !== null && submission.manualScore === undefined && (
+                            <Badge variant="outline" className="text-xs border-info/30 text-info">AI Graded</Badge>
+                          )}
+                          <span className="text-xs text-muted-foreground ml-auto">{getTimeAgo(submission.submittedAt)}</span>
+                        </div>
+                      </div>
+
+                      {/* Desktop grid row */}
+                      <div
+                        className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 hover:bg-secondary/30 transition-colors cursor-pointer"
                         onClick={() => handleViewSubmission(submission)}
                       >
                         {/* Assignment Title */}
@@ -405,6 +447,7 @@ const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
                           </Button>
                         </div>
                       </div>
+                      </Fragment>
                     );
                   })}
                 </div>

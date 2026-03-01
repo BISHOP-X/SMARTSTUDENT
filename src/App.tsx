@@ -19,6 +19,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import AIStudyTools from "./pages/AIStudyTools";
 import NotFound from "./pages/NotFound";
+import MobileNav from "./components/MobileNav";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const AppRoutes = () => {
   const role = userRole || "student";
 
   return (
+    <>
     <Routes>
       <Route path="/" element={<Index />} />
       <Route
@@ -152,6 +154,8 @@ const AppRoutes = () => {
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    <MobileNav userRole={role} />
+    </>
   );
 };
 

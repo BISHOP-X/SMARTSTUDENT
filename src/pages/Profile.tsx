@@ -128,7 +128,7 @@ export default function Profile() {
   return (
     <div className="flex min-h-screen bg-background">
       <Navigation activeTab="profile" onTabChange={() => {}} onLogout={() => {}} />
-      <main className="flex-1 overflow-auto p-8">
+      <main className="flex-1 overflow-auto p-8 pb-20 md:pb-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Profile</h1>

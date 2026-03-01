@@ -205,7 +205,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
     <div className="flex min-h-screen bg-background">
       <Navigation activeTab={activeTab} onTabChange={() => {}} onLogout={onLogout} />
 
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pb-16 md:pb-0">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border">
           <div className="px-6 py-6">

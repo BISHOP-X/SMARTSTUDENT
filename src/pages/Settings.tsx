@@ -27,7 +27,7 @@ export default function Settings() {
   return (
     <div className="flex min-h-screen bg-background">
       <Navigation activeTab="settings" onTabChange={() => {}} onLogout={() => {}} />
-      <main className="flex-1 overflow-auto p-8 space-y-6">
+      <main className="flex-1 overflow-auto p-8 pb-20 space-y-6 md:pb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
           <p className="text-muted-foreground">Control your preferences and notifications</p>

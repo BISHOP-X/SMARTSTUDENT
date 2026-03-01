@@ -214,7 +214,7 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
     <div className="flex min-h-screen bg-background">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} onLogout={onLogout} />
 
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pb-16 md:pb-0">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">

@@ -250,7 +250,7 @@ export default function Calendar() {
   return (
     <div className="flex h-screen bg-background">
       <Navigation activeTab="calendar" onTabChange={() => {}} onLogout={() => {}} />
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto pb-16 md:pb-0">
         <div className="container mx-auto p-8 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">

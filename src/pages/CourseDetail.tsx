@@ -314,7 +314,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
     <div className="flex min-h-screen bg-background">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} onLogout={onLogout} />
 
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pb-16 md:pb-0">
         {/* Hero Section */}
         <div className="relative h-64 w-full">
           <img

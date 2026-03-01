@@ -979,7 +979,7 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto max-h-screen">
+      <main className="flex-1 overflow-auto max-h-screen pb-16 md:pb-0">
         {/* Top Bar */}
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
