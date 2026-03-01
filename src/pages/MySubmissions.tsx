@@ -158,7 +158,7 @@ const MySubmissions = ({ userRole, onLogout }: MySubmissionsProps) => {
 
         <div className="p-6 space-y-6">
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="glass-card border-0">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">

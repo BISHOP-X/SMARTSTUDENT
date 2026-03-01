@@ -217,7 +217,7 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
       <main className="flex-1 overflow-auto pb-16 md:pb-0">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Grading Queue</h1>
               <p className="text-sm text-muted-foreground mt-1">
@@ -225,7 +225,7 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
               </p>
             </div>
             {stats.totalPending > 0 && (
-              <Badge variant="destructive" className="text-lg px-4 py-2">
+              <Badge variant="destructive" className="text-sm px-3 py-1.5 shrink-0">
                 {stats.totalPending} Pending
               </Badge>
             )}
@@ -234,7 +234,7 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
 
         <div className="p-6 space-y-6">
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="glass-card border-0">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">

@@ -275,7 +275,7 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
       )}
 
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Card className="glass-card border-0">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -787,7 +787,7 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
       )}
 
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <Card className="glass-card border-0">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">

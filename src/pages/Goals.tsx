@@ -196,7 +196,7 @@ export default function Goals() {
     <div className="flex h-screen bg-background">
       <Navigation activeTab="goals" onTabChange={() => {}} onLogout={() => {}} />
       <div className="flex-1 overflow-auto pb-16 md:pb-0">
-        <div className="container mx-auto p-8 space-y-6">
+        <div className="container mx-auto p-4 md:p-8 space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -284,7 +284,7 @@ export default function Goals() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="bg-card/80 border-border backdrop-blur">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Goals</CardTitle>

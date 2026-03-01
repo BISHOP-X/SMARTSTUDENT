@@ -129,12 +129,12 @@ export default function Profile() {
     <div className="flex min-h-screen bg-background">
       <Navigation activeTab="profile" onTabChange={() => {}} onLogout={() => {}} />
       <main className="flex-1 overflow-auto p-8 pb-20 md:pb-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-3">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Profile</h1>
             <p className="text-muted-foreground">Manage your account details</p>
           </div>
-          <Badge variant="outline" className="text-sm">
+          <Badge variant="outline" className="text-sm shrink-0">
             {userRole === "lecturer" ? "Lecturer" : "Student"}
           </Badge>
         </div>
