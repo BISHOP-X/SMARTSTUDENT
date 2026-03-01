@@ -27,7 +27,7 @@ const CalendarWidget = ({ isDemo = true }: CalendarWidgetProps) => {
   const hasEvent = (day: number) => events.find(e => e.day === day);
 
   return (
-    <div className="glass-card p-6">
+    <div className="glass-card p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-semibold text-foreground">{currentMonth} {currentYear}</h3>
@@ -42,7 +42,7 @@ const CalendarWidget = ({ isDemo = true }: CalendarWidgetProps) => {
       </div>
 
       {/* Day Labels */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 gap-0.5 mb-2">
         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
           <div key={day} className="text-center text-xs text-muted-foreground py-2">
             {day}
@@ -51,7 +51,7 @@ const CalendarWidget = ({ isDemo = true }: CalendarWidgetProps) => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1 mb-6">
+      <div className="grid grid-cols-7 gap-0.5 mb-6">
         {emptyDays.map((_, i) => (
           <div key={`empty-${i}`} className="aspect-square" />
         ))}
@@ -63,8 +63,8 @@ const CalendarWidget = ({ isDemo = true }: CalendarWidgetProps) => {
             <button
               key={day}
               className={`
-                aspect-square rounded-lg flex flex-col items-center justify-center relative
-                text-sm transition-all duration-200
+                aspect-square min-h-[40px] rounded-lg flex flex-col items-center justify-center relative
+                text-xs transition-all duration-200
                 ${isToday 
                   ? 'bg-primary text-primary-foreground font-semibold' 
                   : 'hover:bg-secondary text-foreground'}

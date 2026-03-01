@@ -501,7 +501,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
             {/* Materials Tab */}
             <TabsContent value="materials">
               <div className="glass-card p-6">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
                   <h2 className="text-xl font-semibold text-foreground">Course Materials</h2>
                   {userRole === "lecturer" && (
                     <Button variant="hero" onClick={() => setIsUploadModalOpen(true)}>
@@ -554,7 +554,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
             {/* Assignments Tab */}
             <TabsContent value="assignments">
               <div className="glass-card p-6">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
                   <h2 className="text-xl font-semibold text-foreground">Assignments</h2>
                   {userRole === "lecturer" && (
                     <Button variant="hero" onClick={() => setIsAssignmentModalOpen(true)}>
@@ -592,7 +592,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
                               {assignment.status}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                             <span>Due: {assignment.dueDate}</span>
                             <span>Max Score: {assignment.maxScore}</span>
                             {userRole === "lecturer" && (
@@ -634,8 +634,8 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
                             <div className="text-sm text-muted-foreground">{student.email}</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
+                        <div className="flex items-center gap-2">
+                          <div className="text-right hidden sm:block">
                             <div className="text-sm text-muted-foreground">Progress</div>
                             <div className="text-lg font-semibold text-foreground">
                               {student.progress}%
