@@ -56,7 +56,7 @@ const RoleProtectedRoute = ({
 
 // Routes component that uses auth context
 const AppRoutes = () => {
-  const { userRole, logout } = useAuth();
+  const { userRole, logout, isAuthenticated } = useAuth();
   const role = userRole || "student";
 
   return (
@@ -154,7 +154,7 @@ const AppRoutes = () => {
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
-    <MobileNav userRole={role} />
+    {isAuthenticated && <MobileNav userRole={role} />}
     </>
   );
 };
