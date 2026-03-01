@@ -40,7 +40,7 @@ const GoalTracker = ({ isDemo = true }: GoalTrackerProps) => {
   const completedCount = dailyTasks.filter(t => t.completed).length;
 
   return (
-    <div className="glass-card p-6 h-full">
+    <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-semibold text-foreground">Goals & Progress</h3>
         {isDemo && (

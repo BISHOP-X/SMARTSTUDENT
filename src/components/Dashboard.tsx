@@ -657,7 +657,7 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
         </div>
 
         {/* Right Column - Sidebar Widgets */}
-        <aside className="space-y-6">
+        <aside className="space-y-6 self-start">
           {/* AI Study Insights - Only show for demo mode with sample data */}
           {isDemo && (
           <Card className="glass-card border-0 bg-gradient-to-br from-primary/5 via-info/5 to-success/5">
@@ -961,7 +961,7 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
         </div>
 
         {/* Right Column - Sidebar Widgets */}
-        <aside className="space-y-6">
+        <aside className="space-y-6 self-start">
           <CalendarWidget isDemo={isDemo} />
           <GoalTracker isDemo={isDemo} />
         </aside>
