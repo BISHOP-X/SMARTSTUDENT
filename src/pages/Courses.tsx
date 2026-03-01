@@ -209,7 +209,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border">
           <div className="px-6 py-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
               <div>
                 <h1 className="text-3xl font-bold text-foreground mb-1">
                   {userRole === "student" ? "Courses" : "Courses I Teach"}
@@ -221,7 +221,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
                 </p>
               </div>
               {userRole === "lecturer" && (
-                <Button variant="hero" size="lg" onClick={() => setIsCreateModalOpen(true)}>
+                <Button variant="hero" size="lg" onClick={() => setIsCreateModalOpen(true)} className="shrink-0">
                   <Plus className="w-5 h-5" />
                   Create Course
                 </Button>
@@ -229,8 +229,8 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
             </div>
 
             {/* Search and Filters */}
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search courses, instructors, or codes..."
@@ -240,7 +240,7 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
                 />
               </div>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[180px] bg-secondary/50 border-0">
+                <SelectTrigger className="w-full sm:w-[180px] bg-secondary/50 border-0">
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>

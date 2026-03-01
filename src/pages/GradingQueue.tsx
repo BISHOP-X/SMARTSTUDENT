@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import GradingPanel from "@/components/GradingPanel";
@@ -330,8 +330,8 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
           {/* Submissions Queue */}
           <Card className="glass-card border-0">
             <CardContent className="p-0">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-border bg-secondary/20">
+              {/* Table Header - hidden on mobile */}
+              <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 border-b border-border bg-secondary/20">
                 <div 
                   className="col-span-2 flex items-center gap-2 cursor-pointer hover:text-primary transition-colors"
                   onClick={() => handleSort("studentName")}
@@ -391,7 +391,7 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
                   )}
                 </div>
               ) : (
-                <div className="divide-y divide-border">
+                <div>
                   {filteredAndSortedSubmissions.map((submission) => {
                     const daysWaiting = Math.floor(
                       (Date.now() - new Date(submission.submittedAt).getTime()) / (1000 * 60 * 60 * 24)
@@ -399,9 +399,44 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
                     const isUrgent = daysWaiting >= 3;
 
                     return (
+                      <Fragment key={submission.id}>
+                      {/* Mobile card view */}
+                      <div className="block md:hidden px-4 py-4 hover:bg-secondary/30 transition-colors border-b border-border last:border-0">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <span className="text-xs font-medium text-primary">
+                                {submission.studentName.split(" ").map((n: string) => n[0]).join("")}
+                              </span>
+                            </div>
+                            <p className="font-medium text-foreground truncate">{submission.studentName}</p>
+                          </div>
+                          {isUrgent && (
+                            <Badge variant="destructive" className="text-xs shrink-0">
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              Urgent
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium text-foreground mb-1 truncate">{submission.assignmentTitle}</p>
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <Badge variant="outline" className="text-xs">{submission.courseName}</Badge>
+                          <span className="text-xs text-muted-foreground">{getTimeAgo(submission.submittedAt)}</span>
+                          <span className="text-xs text-muted-foreground">· {daysWaiting}d waiting</span>
+                          <span className="text-xs text-muted-foreground">· Max: {submission.maxScore}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleViewAssignment(submission)} className="flex-1">
+                            View
+                          </Button>
+                          <Button variant="hero" size="sm" onClick={() => handleGradeSubmission(submission)} className="flex-1">
+                            Grade Now
+                          </Button>
+                        </div>
+                      </div>
+                      {/* Desktop grid row */}
                       <div
-                        key={submission.id}
-                        className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-secondary/30 transition-colors"
+                        className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 hover:bg-secondary/30 transition-colors border-b border-border last:border-0"
                       >
                         {/* Student Name */}
                         <div className="col-span-2">
@@ -464,6 +499,7 @@ const GradingQueue = ({ userRole, onLogout }: GradingQueueProps) => {
                           </Button>
                         </div>
                       </div>
+                      </Fragment>
                     );
                   })}
                 </div>

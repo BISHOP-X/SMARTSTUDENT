@@ -362,7 +362,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
 
           {/* Course Info Overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-6">
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="secondary">{course.courseCode}</Badge>
@@ -393,7 +393,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
 
         {/* Stats Bar */}
         <div className="border-y border-border bg-secondary/30">
-          <div className="px-6 py-4 flex items-center gap-8">
+          <div className="px-6 py-4 flex flex-wrap items-center gap-4 sm:gap-8">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-muted-foreground" />
               <span className="text-sm">
@@ -421,7 +421,8 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
         {/* Tabs Content */}
         <div className="p-6">
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList>
+            <div className="overflow-x-auto pb-1">
+            <TabsList className="min-w-max">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="materials">Materials ({materials.length})</TabsTrigger>
               <TabsTrigger value="assignments">Assignments ({assignments.length})</TabsTrigger>
@@ -429,6 +430,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
                 <TabsTrigger value="students">Students ({students.length})</TabsTrigger>
               )}
             </TabsList>
+            </div>
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">

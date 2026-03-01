@@ -982,15 +982,15 @@ const Dashboard = ({ userRole, onLogout, isDemo = true }: DashboardProps) => {
       <main className="flex-1 overflow-auto max-h-screen pb-16 md:pb-0">
         {/* Top Bar */}
         <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="relative w-80">
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative flex-1 min-w-0 max-w-xs sm:max-w-sm hidden sm:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 placeholder="Search courses, assignments..." 
                 className="pl-10 bg-secondary/50 border-0"
               />
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 ml-auto">
               <NotificationDropdown />
               <Button variant="hero" size="sm" onClick={() => navigate("/goals")}>
                 <Plus className="w-4 h-4" />

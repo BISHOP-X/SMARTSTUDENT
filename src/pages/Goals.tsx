@@ -198,10 +198,10 @@ export default function Goals() {
       <div className="flex-1 overflow-auto pb-16 md:pb-0">
         <div className="container mx-auto p-8 space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-                <Target className="w-8 h-8 text-violet-400" />
+                <Target className="w-8 h-8 text-violet-400 shrink-0" />
                 Personal Goals
               </h1>
               <p className="text-muted-foreground mt-1">
@@ -325,9 +325,9 @@ export default function Goals() {
           {/* Filters */}
           <Card className="bg-card/80 border-border backdrop-blur">
             <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <Filter className="w-4 h-4 text-muted-foreground" />
-                <div className="flex items-center gap-4 flex-1">
+              <div className="flex items-start gap-3">
+                <Filter className="w-4 h-4 text-muted-foreground mt-1 shrink-0" />
+                <div className="flex flex-wrap items-center gap-3 flex-1">
                   <div className="flex items-center gap-2">
                     <Label className="text-muted-foreground text-sm">Category:</Label>
                     <Select value={filterCategory} onValueChange={setFilterCategory}>

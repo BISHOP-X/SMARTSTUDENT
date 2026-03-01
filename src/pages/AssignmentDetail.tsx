@@ -448,7 +448,7 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
                 <h1 className="text-3xl font-bold text-foreground mb-2">
                   {assignment.title}
                 </h1>
-                <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     <span>Due: {formatDate(assignment.dueDate)}</span>

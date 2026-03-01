@@ -431,10 +431,10 @@ export default function AIStudyTools() {
           )}
 
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shrink-0">
                   <Sparkles className="w-6 h-6 text-foreground" />
                 </div>
                 AI Study Tools
@@ -443,7 +443,7 @@ export default function AIStudyTools() {
                 Upload your study materials and let AI help you learn better
               </p>
             </div>
-            <Badge className="bg-violet-600/20 text-violet-400 border-violet-600/30 text-sm px-4 py-2">
+            <Badge className="bg-violet-600/20 text-violet-400 border-violet-600/30 text-sm px-4 py-2 shrink-0">
               <Zap className="w-4 h-4 mr-2" />
               Powered by AI
             </Badge>
@@ -501,7 +501,8 @@ export default function AIStudyTools() {
 
           {/* Main Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="bg-card/80 border border-border">
+            <div className="overflow-x-auto pb-1">
+            <TabsList className="bg-card/80 border border-border min-w-max">
               <TabsTrigger value="upload">
                 <Upload className="w-4 h-4 mr-2" />
                 Upload & Manage
@@ -523,6 +524,7 @@ export default function AIStudyTools() {
                 My Content ({generatedContent.length})
               </TabsTrigger>
             </TabsList>
+            </div>
 
             {/* Upload Tab */}
             <TabsContent value="upload" className="space-y-6">
