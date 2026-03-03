@@ -25,12 +25,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Check localStorage first
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('edusync-theme') as Theme;
-      if (stored) return stored;
-      
-      // Check system preference
-      if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-        return 'light';
-      }
+      const resolved: Theme = stored
+        ? stored
+        : window.matchMedia('(prefers-color-scheme: light)').matches
+        ? 'light'
+        : 'dark';
+
+      // Apply immediately — before first render — so Tailwind dark: CSS selectors
+      // and the isDark boolean are in sync from frame 0 (prevents mixed theming).
+      window.document.documentElement.classList.remove('light', 'dark');
+      window.document.documentElement.classList.add(resolved);
+      return resolved;
     }
     return 'dark'; // Default to dark
   });

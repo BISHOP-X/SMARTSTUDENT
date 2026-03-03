@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   userRole: "student" | "lecturer" | null;
   isDemo: boolean;
   user: User | null;
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // true until session check completes
   const [userRole, setUserRole] = useState<"student" | "lecturer" | null>(null);
   const [isDemo, setIsDemo] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -43,6 +45,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (err) {
         console.error('Session check error:', err);
+      } finally {
+        setIsLoading(false); // session check done — unblock routes
       }
     };
 
@@ -91,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userRole, isDemo, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, userRole, isDemo, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

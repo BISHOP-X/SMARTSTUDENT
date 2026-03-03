@@ -25,7 +25,9 @@ const queryClient = new QueryClient();
 
 // Protected route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  // Hold here while session check is in flight — prevents redirect-on-refresh race
+  if (isLoading) return null;
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
@@ -40,8 +42,9 @@ const RoleProtectedRoute = ({
   children: React.ReactNode; 
   allowedRoles: ("student" | "lecturer")[] 
 }) => {
-  const { isAuthenticated, userRole } = useAuth();
+  const { isAuthenticated, isLoading, userRole } = useAuth();
   
+  if (isLoading) return null;
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
