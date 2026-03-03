@@ -16,7 +16,7 @@ import {
 interface CourseCreationFormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (courseData: CourseFormData) => void;
+  onSubmit: (courseData: CourseFormData) => Promise<boolean>;
 }
 
 export interface CourseFormData {
@@ -123,12 +123,12 @@ const CourseCreationForm = ({ open, onClose, onSubmit }: CourseCreationFormProps
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    onSubmit(formData);
+    const success = await onSubmit(formData);
     setIsSubmitting(false);
-    handleClose();
+
+    if (success) {
+      handleClose();
+    }
   };
 
   const handleClose = () => {

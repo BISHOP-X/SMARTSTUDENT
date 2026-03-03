@@ -75,10 +75,10 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
     loadCourses();
   }, [isDemo, userRole]);
 
-  const handleCreateCourse = async (courseData: CourseFormData) => {
+  const handleCreateCourse = async (courseData: CourseFormData): Promise<boolean> => {
     if (isDemo) {
       toast.info('Course creation is not available in demo mode');
-      return;
+      return false;
     }
     const result = await createCourse({
       title: courseData.title,
@@ -92,9 +92,10 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
       // Refresh courses
       const { courses } = await getMyCourses();
       setDbCourses(courses);
-      setIsCreateModalOpen(false);
+      return true;
     } else {
       toast.error(result.error || 'Failed to create course');
+      return false;
     }
   };
 

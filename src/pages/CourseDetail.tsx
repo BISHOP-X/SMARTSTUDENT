@@ -218,29 +218,32 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
         status: "active",
       };
 
-  const materials = [
-    {
-      id: 1,
-      title: "Chapter 1: Introduction to Molecular Biology",
-      type: "PDF",
-      size: "2.4 MB",
-      uploadedAt: "2 days ago",
-    },
-    {
-      id: 2,
-      title: "Lecture Slides - DNA Structure",
-      type: "PDF",
-      size: "1.8 MB",
-      uploadedAt: "1 week ago",
-    },
-    {
-      id: 3,
-      title: "Lab Manual - Gel Electrophoresis",
-      type: "PDF",
-      size: "3.2 MB",
-      uploadedAt: "2 weeks ago",
-    },
-  ];
+  // Demo-only mock materials — real users have no course_materials table yet
+  const materials = isDemo
+    ? [
+        {
+          id: 1,
+          title: "Chapter 1: Introduction to Molecular Biology",
+          type: "PDF",
+          size: "2.4 MB",
+          uploadedAt: "2 days ago",
+        },
+        {
+          id: 2,
+          title: "Lecture Slides - DNA Structure",
+          type: "PDF",
+          size: "1.8 MB",
+          uploadedAt: "1 week ago",
+        },
+        {
+          id: 3,
+          title: "Lab Manual - Gel Electrophoresis",
+          type: "PDF",
+          size: "3.2 MB",
+          uploadedAt: "2 weeks ago",
+        },
+      ]
+    : [];
 
   // Assignments: demo uses hardcoded, real uses DB
   const assignments = isDemo

@@ -20,6 +20,18 @@ interface GoalRow {
   updated_at: string;
 }
 
+// Map DB status values → app status values
+// DB constraint: 'not_started' | 'in_progress' | 'completed'
+// App uses:       'todo'        | 'todo'         | 'done'
+function dbStatusToApp(dbStatus: string): 'todo' | 'done' {
+  return dbStatus === 'completed' ? 'done' : 'todo';
+}
+
+// Map app status values → DB status values
+function appStatusToDB(appStatus: string): string {
+  return appStatus === 'done' ? 'completed' : 'not_started';
+}
+
 // Map DB row → app PersonalGoal
 function toPersonalGoal(row: GoalRow): PersonalGoal {
   return {
@@ -30,7 +42,7 @@ function toPersonalGoal(row: GoalRow): PersonalGoal {
     eventDate: row.target_date
       ? new Date(row.target_date).toISOString()
       : new Date().toISOString(),
-    status: row.status === 'done' ? 'done' : 'todo',
+    status: dbStatusToApp(row.status),
     category: (['study', 'personal', 'health', 'career', 'other'].includes(row.category)
       ? row.category
       : 'personal') as PersonalGoal['category'],
@@ -75,7 +87,7 @@ export async function createGoal(data: {
       description: data.description || null,
       category: data.category,
       target_date: data.eventDate ? data.eventDate.split('T')[0] : null,
-      status: 'todo',
+      status: 'not_started',
     })
     .select()
     .single();
@@ -100,7 +112,7 @@ export async function updateGoal(
   if (data.description !== undefined) updates.description = data.description || null;
   if (data.category !== undefined) updates.category = data.category;
   if (data.eventDate !== undefined) updates.target_date = data.eventDate.split('T')[0];
-  if (data.status !== undefined) updates.status = data.status;
+  if (data.status !== undefined) updates.status = appStatusToDB(data.status);
   updates.updated_at = new Date().toISOString();
 
   const { data: row, error } = await supabase
