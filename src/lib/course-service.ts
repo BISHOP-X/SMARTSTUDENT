@@ -38,6 +38,7 @@ export async function createCourse(data: {
   description?: string;
   semester?: string;
   credits?: number;
+  image_url?: string;
 }): Promise<{ success: boolean; course?: Course; error?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'Not authenticated' };
@@ -51,6 +52,7 @@ export async function createCourse(data: {
       description: data.description || null,
       semester: data.semester || 'Spring 2026',
       credits: data.credits || 3,
+      ...(data.image_url ? { image_url: data.image_url } : {}),
     })
     .select()
     .single();

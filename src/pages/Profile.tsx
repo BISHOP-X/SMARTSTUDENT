@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { uploadImage } from "@/lib/file-upload-service";
 
 export default function Profile() {
   const { userRole, isDemo, user } = useAuth();
@@ -22,6 +23,7 @@ export default function Profile() {
   const [phone, setPhone] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   // Load profile data on mount
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function Profile() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('full_name, phone, parent_phone')
+          .select('full_name, phone, parent_phone, avatar_url')
           .eq('id', user.id)
           .single();
 
@@ -49,10 +51,11 @@ export default function Profile() {
         }
 
         if (data) {
-          const profile = data as { full_name?: string; phone?: string; parent_phone?: string };
+          const profile = data as { full_name?: string; phone?: string; parent_phone?: string; avatar_url?: string };
           setDisplayName(profile.full_name || user.email?.split('@')[0] || '');
           setPhone(profile.phone || '');
           setParentPhone(profile.parent_phone || '');
+          if (profile.avatar_url) setAvatarPreview(profile.avatar_url);
         } else {
           // No profile yet, use email
           setDisplayName(user.email?.split('@')[0] || '');
@@ -75,6 +78,7 @@ export default function Profile() {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setAvatarFile(file);
       const url = URL.createObjectURL(file);
       setAvatarPreview(url);
     }
@@ -93,6 +97,18 @@ export default function Profile() {
 
     setIsSaving(true);
     try {
+      // Upload avatar if a new one was selected
+      let avatarUrl: string | undefined;
+      if (avatarFile) {
+        const uploadResult = await uploadImage(avatarFile, 'avatars', 'uploads');
+        if (uploadResult.success && uploadResult.url) {
+          avatarUrl = uploadResult.url;
+          setAvatarFile(null); // clear pending file after successful upload
+        } else {
+          toast({ title: 'Avatar upload failed', description: uploadResult.error, variant: 'destructive' });
+        }
+      }
+
       const profileData = {
         id: user.id,
         email: user.email || '',
@@ -101,6 +117,7 @@ export default function Profile() {
         parent_phone: parentPhone || null,
         role: userRole || 'student',
         updated_at: new Date().toISOString(),
+        ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

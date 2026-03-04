@@ -167,3 +167,20 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
     }
   });
 };
+
+/**
+ * Upload an image (avatar or course cover) to Supabase Storage
+ */
+export const uploadImage = async (
+  file: File,
+  bucket: 'avatars' | 'course-images',
+  folder: string
+): Promise<UploadResult> => {
+  if (!file.type.startsWith('image/')) {
+    return { success: false, error: 'Please upload an image file.' };
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return { success: false, error: 'Image must be under 5MB.' };
+  }
+  return uploadFile(file, bucket, folder);
+};

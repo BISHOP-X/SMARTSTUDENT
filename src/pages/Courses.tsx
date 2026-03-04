@@ -15,6 +15,7 @@ import Navigation from "@/components/Navigation";
 import CourseCreationForm, { CourseFormData } from "@/components/CourseCreationForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMyCourses, getAllCourses, enrollInCourse, createCourse, type Course } from "@/lib/course-service";
+import { uploadImage } from "@/lib/file-upload-service";
 import { toast } from "sonner";
 
 // Import course images (used as fallbacks)
@@ -80,12 +81,21 @@ const CoursesPage = ({ userRole, onLogout }: CoursesPageProps) => {
       toast.info('Course creation is not available in demo mode');
       return false;
     }
+    // Upload cover image if provided
+    let imageUrl: string | undefined;
+    if (courseData.coverImage) {
+      const uploadResult = await uploadImage(courseData.coverImage, 'course-images', 'covers');
+      if (uploadResult.success && uploadResult.url) {
+        imageUrl = uploadResult.url;
+      }
+    }
     const result = await createCourse({
       title: courseData.title,
       course_code: courseData.courseCode,
       description: courseData.description,
       semester: courseData.semester,
       credits: courseData.credits,
+      ...(imageUrl ? { image_url: imageUrl } : {}),
     });
     if (result.success) {
       toast.success('Course created successfully!');
