@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 interface MaterialUploadProps {
   open: boolean;
   onClose: () => void;
-  onUpload: (materials: UploadedMaterial[]) => void;
+  onUpload: (materials: UploadedMaterial[]) => Promise<boolean>;
   courseId?: string;
 }
 
@@ -203,14 +203,19 @@ const MaterialUpload = ({ open, onClose, onUpload }: MaterialUploadProps) => {
 
     setIsUploading(false);
 
-    // Call onUpload callback with all successful materials
-    const successfulMaterials = materials.filter((m) => m.status === "success");
-    onUpload(successfulMaterials);
+    const successfulMaterials = validMaterials.map((material) => ({
+      ...material,
+      uploadProgress: 100,
+      status: "success" as const,
+    }));
 
-    // Close dialog after short delay
-    setTimeout(() => {
-      handleClose();
-    }, 500);
+    const didUpload = await onUpload(successfulMaterials);
+
+    if (didUpload) {
+      setTimeout(() => {
+        handleClose();
+      }, 500);
+    }
   };
 
   const handleClose = () => {

@@ -28,6 +28,7 @@ import MaterialUpload, { UploadedMaterial } from "@/components/MaterialUpload";
 import AssignmentCreationForm, { AssignmentFormData } from "@/components/AssignmentCreationForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCourse, getCourseStudents, type Course } from "@/lib/course-service";
+import { deleteCourseMaterial, getCourseMaterials, uploadCourseMaterial, type CourseMaterial } from "@/lib/course-material-service";
 import { getCourseAssignments, createAssignment, type Assignment } from "@/lib/assignment-service";
 import { toast } from "sonner";
 
@@ -109,11 +110,13 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
   const navigate = useNavigate();
   const { isDemo } = useAuth();
   const [activeTab, setActiveTab] = useState("courses");
+  const [courseTab, setCourseTab] = useState("overview");
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   
   // Real data state
   const [courseData, setCourseData] = useState<Course | null>(null);
+  const [dbMaterials, setDbMaterials] = useState<CourseMaterial[]>([]);
   const [dbAssignments, setDbAssignments] = useState<Assignment[]>([]);
   const [dbStudents, setDbStudents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -123,12 +126,14 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
     if (isDemo || !id) return;
     const loadCourseData = async () => {
       setIsLoading(true);
-      const [courseResult, assignmentResult, studentsResult] = await Promise.all([
+      const [courseResult, materialsResult, assignmentResult, studentsResult] = await Promise.all([
         getCourse(id),
+        getCourseMaterials(id),
         getCourseAssignments(id),
         getCourseStudents(id),
       ]);
       if (courseResult.course) setCourseData(courseResult.course);
+      setDbMaterials(materialsResult.materials);
       setDbAssignments(assignmentResult.assignments);
       setDbStudents(studentsResult.students);
       setIsLoading(false);
@@ -136,8 +141,73 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
     loadCourseData();
   }, [id, isDemo]);
 
-  const handleMaterialUpload = (uploadedMaterials: UploadedMaterial[]) => {
-    console.log("Uploaded materials:", uploadedMaterials);
+  const handleMaterialUpload = async (uploadedMaterials: UploadedMaterial[]) => {
+    if (isDemo) {
+      toast.info('Material uploads are not available in demo mode');
+      return false;
+    }
+
+    if (!id) {
+      toast.error('Course not found');
+      return false;
+    }
+
+    let uploadedCount = 0;
+
+    for (const material of uploadedMaterials) {
+      const result = await uploadCourseMaterial({
+        courseId: id,
+        title: material.title,
+        file: material.file,
+      });
+
+      if (result.material) {
+        uploadedCount += 1;
+      } else {
+        toast.error(result.error || `Failed to upload ${material.title}`);
+      }
+    }
+
+    if (uploadedCount === 0) {
+      return false;
+    }
+
+    const refreshed = await getCourseMaterials(id);
+    setDbMaterials(refreshed.materials);
+    setCourseTab("materials");
+    toast.success(`${uploadedCount} material${uploadedCount === 1 ? '' : 's'} uploaded successfully`);
+    return true;
+  };
+
+  const handleDeleteMaterial = async (materialId: string) => {
+    const result = await deleteCourseMaterial(materialId);
+    if (!result.success) {
+      toast.error(result.error || 'Failed to delete material');
+      return;
+    }
+
+    setDbMaterials(prev => prev.filter(material => material.id !== materialId));
+    toast.success('Material deleted');
+  };
+
+  const formatMaterialSize = (bytes?: number | null) => {
+    if (!bytes) return 'Unknown size';
+    const units = ['Bytes', 'KB', 'MB', 'GB'];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    const value = bytes / Math.pow(1024, index);
+    return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+  };
+
+  const getMaterialTypeLabel = (fileType?: string | null, fileName?: string) => {
+    if (fileType === 'application/pdf') return 'PDF';
+    if (fileType?.includes('presentation') || fileType === 'application/vnd.ms-powerpoint') return 'PPT';
+    if (fileType?.includes('word') || fileType?.includes('document')) return 'DOC';
+    if (fileType === 'text/plain') return 'TXT';
+    return fileName?.split('.').pop()?.toUpperCase() || 'FILE';
+  };
+
+  const openMaterial = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleAssignmentCreate = async (assignmentData: AssignmentFormData) => {
@@ -218,7 +288,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
         status: "active",
       };
 
-  // Demo-only mock materials — real users have no course_materials table yet
+  // Materials: demo uses mock, real uses DB
   const materials = isDemo
     ? [
         {
@@ -227,6 +297,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
           type: "PDF",
           size: "2.4 MB",
           uploadedAt: "2 days ago",
+          url: "#",
         },
         {
           id: 2,
@@ -234,6 +305,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
           type: "PDF",
           size: "1.8 MB",
           uploadedAt: "1 week ago",
+          url: "#",
         },
         {
           id: 3,
@@ -241,9 +313,21 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
           type: "PDF",
           size: "3.2 MB",
           uploadedAt: "2 weeks ago",
+          url: "#",
         },
       ]
-    : [];
+    : dbMaterials.map((material) => ({
+        id: material.id,
+        title: material.title,
+        type: getMaterialTypeLabel(material.file_type, material.file_name),
+        size: formatMaterialSize(material.file_size),
+        uploadedAt: new Date(material.created_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        url: material.public_url,
+      }));
 
   // Assignments: demo uses hardcoded, real uses DB
   const assignments = isDemo
@@ -377,7 +461,14 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
               </div>
 
               {userRole === "lecturer" ? (
-                <Button variant="hero" size="lg">
+                <Button
+                  variant="hero"
+                  size="lg"
+                  onClick={() => {
+                    setCourseTab("materials");
+                    setIsUploadModalOpen(true);
+                  }}
+                >
                   <Plus className="w-5 h-5" />
                   Add Material
                 </Button>
@@ -423,7 +514,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
 
         {/* Tabs Content */}
         <div className="p-6">
-          <Tabs defaultValue="overview" className="space-y-6">
+          <Tabs value={courseTab} onValueChange={setCourseTab} className="space-y-6">
             <div className="overflow-x-auto pb-1">
             <TabsList className="min-w-max">
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -462,7 +553,7 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
                             </div>
                           </div>
                         </div>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => !isDemo && openMaterial(material.url)}>
                           <Download className="w-4 h-4" />
                         </Button>
                       </div>
@@ -538,11 +629,15 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" onClick={() => !isDemo && openMaterial(material.url)}>
                             <Download className="w-4 h-4" />
                           </Button>
                           {userRole === "lecturer" && (
-                            <Button variant="ghost" size="icon">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => !isDemo && handleDeleteMaterial(String(material.id))}
+                            >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           )}
