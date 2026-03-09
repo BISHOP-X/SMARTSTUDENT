@@ -329,6 +329,27 @@ export default function AIStudyTools() {
     const file = uploadedFiles.find(f => f.id === selectedFile);
     const contentTitle = inputMode === "text" ? "Pasted Text" : file?.name || "Content";
 
+    const addFallbackQuestions = (message: string) => {
+      const newQuestions: GeneratedContent = {
+        id: `g${Date.now()}`,
+        type: "questions",
+        title: `Practice Questions - ${contentTitle}`,
+        content: generateMockQuestions(questionDifficulty, questionCount, questionTypes),
+        createdAt: new Date(),
+        settings: {
+          difficulty: questionDifficulty,
+          count: questionCount,
+          types: questionTypes,
+          mode: practiceMode,
+        },
+        isRealAI: false,
+      };
+
+      setGeneratedContent(prev => [newQuestions, ...prev]);
+      setActiveTab("generated");
+      toast.warning(message);
+    };
+
     const { canUse } = await canUseAI();
 
     if (canUse && !isDemo) {
@@ -360,11 +381,12 @@ export default function AIStudyTools() {
           setActiveTab("generated");
           toast.success("❓ Practice questions generated with AI!");
         } else {
-          toast.error(result.error || "Failed to generate questions");
+          console.error("Questions generation failed:", result.error);
+          addFallbackQuestions("AI quiz generation is temporarily unavailable. A local interactive quiz was generated instead.");
         }
       } catch (error) {
         console.error("Questions generation error:", error);
-        toast.error("Failed to connect to AI service");
+        addFallbackQuestions("Could not connect to the AI quiz service. A local interactive quiz was generated instead.");
       }
     } else {
       // Demo mode
