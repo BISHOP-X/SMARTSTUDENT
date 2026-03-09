@@ -1,6 +1,7 @@
-import { Home, BookOpen, Calendar, Target, ClipboardList, Brain, BarChart3, User } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Home, BookOpen, Calendar, Target, ClipboardList, Brain, User, LogOut } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MobileNavProps {
   userRole: 'student' | 'lecturer';
@@ -8,6 +9,8 @@ interface MobileNavProps {
 
 export default function MobileNav({ userRole }: MobileNavProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const studentNavItems = [
     { icon: Home,         label: 'Home',        to: '/' },
@@ -24,6 +27,11 @@ export default function MobileNav({ userRole }: MobileNavProps) {
   ];
 
   const navItems = userRole === 'lecturer' ? lecturerNavItems : studentNavItems;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t md:hidden">
@@ -62,6 +70,14 @@ export default function MobileNav({ userRole }: MobileNavProps) {
           <User className={cn("h-5 w-5", location.pathname === '/profile' && "fill-current")} />
           <span className="text-xs font-medium">Profile</span>
         </Link>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex flex-col items-center justify-center flex-1 h-full space-y-1 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <LogOut className="h-5 w-5" />
+          <span className="text-xs font-medium">Logout</span>
+        </button>
       </div>
     </nav>
   );
