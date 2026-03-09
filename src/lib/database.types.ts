@@ -53,13 +53,63 @@ export interface Database {
           updated_at?: string;
         };
       };
+      calendar_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string | null;
+          event_date: string;
+          event_type: 'goal' | 'assignment' | 'reminder';
+          category: 'study' | 'personal' | 'health' | 'career' | 'other';
+          status: 'todo' | 'in-progress' | 'completed' | 'overdue';
+          course_id: string | null;
+          event_time: string | null;
+          color: string | null;
+          completed: boolean | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          description?: string | null;
+          event_date: string;
+          event_type?: 'goal' | 'assignment' | 'reminder';
+          category?: 'study' | 'personal' | 'health' | 'career' | 'other';
+          status?: 'todo' | 'in-progress' | 'completed' | 'overdue';
+          course_id?: string | null;
+          event_time?: string | null;
+          color?: string | null;
+          completed?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string | null;
+          event_date?: string;
+          event_type?: 'goal' | 'assignment' | 'reminder';
+          category?: 'study' | 'personal' | 'health' | 'career' | 'other';
+          status?: 'todo' | 'in-progress' | 'completed' | 'overdue';
+          course_id?: string | null;
+          event_time?: string | null;
+          color?: string | null;
+          completed?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       personal_goals: {
         Row: {
           id: string;
           user_id: string;
           title: string;
           description: string | null;
-          category: 'academic' | 'personal' | 'health' | 'career';
+          category: 'study' | 'personal' | 'health' | 'career' | 'other';
           target_date: string | null;
           status: 'not_started' | 'in_progress' | 'completed';
           created_at: string;
@@ -70,7 +120,7 @@ export interface Database {
           user_id: string;
           title: string;
           description?: string | null;
-          category?: 'academic' | 'personal' | 'health' | 'career';
+          category?: 'study' | 'personal' | 'health' | 'career' | 'other';
           target_date?: string | null;
           status?: 'not_started' | 'in_progress' | 'completed';
           created_at?: string;
@@ -81,7 +131,7 @@ export interface Database {
           user_id?: string;
           title?: string;
           description?: string | null;
-          category?: 'academic' | 'personal' | 'health' | 'career';
+          category?: 'study' | 'personal' | 'health' | 'career' | 'other';
           target_date?: string | null;
           status?: 'not_started' | 'in_progress' | 'completed';
           created_at?: string;
@@ -132,7 +182,7 @@ export interface Database {
     };
     Enums: {
       user_role: 'student' | 'lecturer';
-      goal_category: 'academic' | 'personal' | 'health' | 'career';
+      goal_category: 'study' | 'personal' | 'health' | 'career' | 'other';
       goal_status: 'not_started' | 'in_progress' | 'completed';
     };
   };

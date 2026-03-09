@@ -20,6 +20,20 @@ interface GoalRow {
   updated_at: string;
 }
 
+function dbCategoryToApp(category: string): PersonalGoal['category'] {
+  if (category === 'academic') return 'study';
+
+  return (['study', 'personal', 'health', 'career', 'other'].includes(category)
+    ? category
+    : 'personal') as PersonalGoal['category'];
+}
+
+function appCategoryToDB(category: string): string {
+  return ['study', 'personal', 'health', 'career', 'other'].includes(category)
+    ? category
+    : 'personal';
+}
+
 // Map DB status values → app status values
 // DB constraint: 'not_started' | 'in_progress' | 'completed'
 // App uses:       'todo'        | 'todo'         | 'done'
@@ -43,9 +57,7 @@ function toPersonalGoal(row: GoalRow): PersonalGoal {
       ? new Date(row.target_date).toISOString()
       : new Date().toISOString(),
     status: dbStatusToApp(row.status),
-    category: (['study', 'personal', 'health', 'career', 'other'].includes(row.category)
-      ? row.category
-      : 'personal') as PersonalGoal['category'],
+    category: dbCategoryToApp(row.category),
     createdAt: row.created_at,
   };
 }
@@ -85,7 +97,7 @@ export async function createGoal(data: {
       user_id: user.id,
       title: data.title,
       description: data.description || null,
-      category: data.category,
+      category: appCategoryToDB(data.category),
       target_date: data.eventDate ? data.eventDate.split('T')[0] : null,
       status: 'not_started',
     })
@@ -110,7 +122,7 @@ export async function updateGoal(
   const updates: Record<string, unknown> = {};
   if (data.title !== undefined) updates.title = data.title;
   if (data.description !== undefined) updates.description = data.description || null;
-  if (data.category !== undefined) updates.category = data.category;
+  if (data.category !== undefined) updates.category = appCategoryToDB(data.category);
   if (data.eventDate !== undefined) updates.target_date = data.eventDate.split('T')[0];
   if (data.status !== undefined) updates.status = appStatusToDB(data.status);
   updates.updated_at = new Date().toISOString();
