@@ -80,38 +80,74 @@ async function extractDocx(file: File): Promise<string> {
 /** Extract text from .pdf using pdfjs-dist */
 async function extractPdf(file: File): Promise<string> {
   try {
-    // Dynamic import to keep bundle lighter — pdfjs is large
-    const pdfjsLib = await import('pdfjs-dist');
-
-    // Set the worker source — use bundled worker from pdfjs-dist
-    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.mjs',
+    // Use the legacy build for better compatibility on older/mobile browsers.
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const workerSrc = new URL(
+      'pdfjs-dist/legacy/build/pdf.worker.mjs',
       import.meta.url,
     ).toString();
 
     const arrayBuffer = await fileToArrayBuffer(file);
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdf = await loadPdfDocument(pdfjsLib, arrayBuffer, workerSrc);
 
     const textParts: string[] = [];
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
       const pageText = content.items
-        .map((item: any) => item.str)
-        .join(' ');
-      textParts.push(pageText);
+        .map((item: { str?: string }) => item.str ?? '')
+        .join(' ')
+        .trim();
+
+      if (pageText) {
+        textParts.push(pageText);
+      }
+
+      page.cleanup();
     }
+
+    await pdf.destroy();
 
     const text = textParts.join('\n\n').trim();
     if (!text) {
-      throw new Error('No text found in PDF');
+      throw new Error('PDF contains no selectable text');
     }
+
     return text;
   } catch (err) {
     console.error('[extractPdf] Error:', err);
+
+    if (err instanceof Error && err.message === 'PDF contains no selectable text') {
+      throw new Error(
+        'This PDF appears to contain no selectable text. If it is a scanned document, paste the text directly instead.'
+      );
+    }
+
     throw new Error(
-      'Could not extract text from this PDF. Try pasting the text directly instead.'
+      'Could not extract text from this PDF. Please try another PDF or paste the text directly instead.'
     );
+  }
+}
+
+async function loadPdfDocument(
+  pdfjsLib: any,
+  arrayBuffer: ArrayBuffer,
+  workerSrc: string,
+) {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+    return await pdfjsLib.getDocument({
+      data: arrayBuffer,
+      useWorkerFetch: false,
+      isEvalSupported: false,
+    }).promise;
+  } catch (workerError) {
+    console.warn('[extractPdf] Worker setup failed, retrying without worker:', workerError);
+    return await pdfjsLib.getDocument({
+      data: arrayBuffer,
+      disableWorker: true,
+      isEvalSupported: false,
+    }).promise;
   }
 }
 
