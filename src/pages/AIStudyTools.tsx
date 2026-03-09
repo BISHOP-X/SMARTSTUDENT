@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Upload, 
@@ -121,6 +121,22 @@ export default function AIStudyTools() {
   const [includeExplanations, setIncludeExplanations] = useState(true);
   const [timeLimit, setTimeLimit] = useState(0); // 0 = no limit
 
+  const readyFiles = uploadedFiles.filter(
+    (file) => file.status === "ready" && !!file.content?.trim()
+  );
+
+  useEffect(() => {
+    if (inputMode !== "file") return;
+
+    const selectedReadyFile = uploadedFiles.find(
+      (file) => file.id === selectedFile && file.status === "ready" && !!file.content?.trim()
+    );
+
+    if (!selectedReadyFile && readyFiles.length > 0) {
+      setSelectedFile(readyFiles[0].id);
+    }
+  }, [inputMode, readyFiles, selectedFile, uploadedFiles]);
+
   // Get the content to use for generation
   const getSourceContent = (): string | null => {
     if (inputMode === "text") {
@@ -128,6 +144,50 @@ export default function AIStudyTools() {
     }
     const file = uploadedFiles.find(f => f.id === selectedFile);
     return file?.content || null;
+  };
+
+  const getSourceDetails = (): { content: string; title: string } | null => {
+    if (inputMode === "text") {
+      const text = directTextInput.trim();
+      return text ? { content: text, title: "Pasted Text" } : null;
+    }
+
+    const selectedReadyFile = uploadedFiles.find(
+      (file) => file.id === selectedFile && file.status === "ready" && !!file.content?.trim()
+    );
+
+    if (selectedReadyFile?.content?.trim()) {
+      return { content: selectedReadyFile.content.trim(), title: selectedReadyFile.name };
+    }
+
+    if (readyFiles.length > 0) {
+      return {
+        content: readyFiles[0].content!.trim(),
+        title: readyFiles[0].name,
+      };
+    }
+
+    return null;
+  };
+
+  const addGeneratedItem = (item: GeneratedContent) => {
+    setGeneratedContent(prev => [item, ...prev]);
+    setActiveTab("generated");
+  };
+
+  const normalizeTextOutput = (content?: string | null) => content?.trim() || "";
+
+  const normalizeQuestionOutput = (content?: string | null) => {
+    const trimmed = content?.trim();
+    if (!trimmed) return null;
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (!Array.isArray(parsed) || parsed.length === 0) return null;
+      return JSON.stringify(parsed);
+    } catch {
+      return null;
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,26 +235,47 @@ export default function AIStudyTools() {
   };
 
   const deleteFile = (fileId: string) => {
-    setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+    const remainingFiles = uploadedFiles.filter(f => f.id !== fileId);
+    setUploadedFiles(remainingFiles);
+
     if (selectedFile === fileId) {
-      setSelectedFile(null);
+      const nextReadyFile = remainingFiles.find(
+        (file) => file.status === "ready" && !!file.content?.trim()
+      );
+      setSelectedFile(nextReadyFile?.id || null);
     }
+
     toast.success("File deleted");
   };
 
   // Generate notes using real AI or mock (for demo mode)
   const generateNotes = async () => {
-    const content = getSourceContent();
-    if (!content) {
+    const source = getSourceDetails();
+    if (!source) {
       toast.error(inputMode === "text" 
         ? "Please enter some text content first" 
-        : "Please select a file first");
+        : uploadedFiles.length > 0
+        ? "Please wait for a material to finish processing or select a ready file"
+        : "Please upload and select a file first");
       return;
     }
 
     setIsGenerating(true);
-    const file = uploadedFiles.find(f => f.id === selectedFile);
-    const contentTitle = inputMode === "text" ? "Pasted Text" : file?.name || "Content";
+    const content = source.content;
+    const contentTitle = source.title;
+
+    const addFallbackNotes = (message: string) => {
+      addGeneratedItem({
+        id: `g${Date.now()}`,
+        type: "notes",
+        title: `Study Notes - ${contentTitle}`,
+        content: generateMockNotes(notesFormat, notesDetail),
+        createdAt: new Date(),
+        settings: { format: notesFormat, detail: notesDetail, examples: includeExamples },
+        isRealAI: false,
+      });
+      toast.warning(message);
+    };
 
     // Check if user can use real AI (needs real auth, not demo)
     const { canUse } = await canUseAI();
@@ -208,25 +289,27 @@ export default function AIStudyTools() {
           includeExamples,
         });
 
-        if (result.success && result.content) {
+        const normalizedContent = normalizeTextOutput(result.content);
+
+        if (result.success && normalizedContent) {
           const newNotes: GeneratedContent = {
             id: `g${Date.now()}`,
             type: "notes",
             title: `Study Notes - ${contentTitle}`,
-            content: result.content,
+            content: normalizedContent,
             createdAt: new Date(),
             settings: { format: notesFormat, detail: notesDetail, examples: includeExamples },
             isRealAI: true,
           };
-          setGeneratedContent(prev => [newNotes, ...prev]);
-          setActiveTab("generated");
+          addGeneratedItem(newNotes);
           toast.success("📝 Study notes generated with AI!");
         } else {
-          toast.error(result.error || "Failed to generate notes");
+          console.error("Notes generation failed:", result.error || 'Empty AI response');
+          addFallbackNotes("AI notes generation returned an empty response. Local study notes were generated instead.");
         }
       } catch (error) {
         console.error("Notes generation error:", error);
-        toast.error("Failed to connect to AI service");
+        addFallbackNotes("Could not connect to the AI notes service. Local study notes were generated instead.");
       }
     } else {
       // Use mock data for demo mode
@@ -240,8 +323,7 @@ export default function AIStudyTools() {
           settings: { format: notesFormat, detail: notesDetail, examples: includeExamples },
           isRealAI: false,
         };
-        setGeneratedContent(prev => [newNotes, ...prev]);
-        setActiveTab("generated");
+        addGeneratedItem(newNotes);
         toast.success("📝 Study notes generated (Demo Mode)");
       }, 1500);
     }
@@ -251,17 +333,32 @@ export default function AIStudyTools() {
 
   // Generate summary using real AI or mock
   const generateSummary = async () => {
-    const content = getSourceContent();
-    if (!content) {
+    const source = getSourceDetails();
+    if (!source) {
       toast.error(inputMode === "text" 
         ? "Please enter some text content first" 
-        : "Please select a file first");
+        : uploadedFiles.length > 0
+        ? "Please wait for a material to finish processing or select a ready file"
+        : "Please upload and select a file first");
       return;
     }
 
     setIsGenerating(true);
-    const file = uploadedFiles.find(f => f.id === selectedFile);
-    const contentTitle = inputMode === "text" ? "Pasted Text" : file?.name || "Content";
+    const content = source.content;
+    const contentTitle = source.title;
+
+    const addFallbackSummary = (message: string) => {
+      addGeneratedItem({
+        id: `g${Date.now()}`,
+        type: "summary",
+        title: `Summary - ${contentTitle}`,
+        content: generateMockSummary(summaryLength),
+        createdAt: new Date(),
+        settings: { length: summaryLength, focus: summaryFocus },
+        isRealAI: false,
+      });
+      toast.warning(message);
+    };
 
     const { canUse } = await canUseAI();
 
@@ -274,25 +371,27 @@ export default function AIStudyTools() {
           includeKeyTerms,
         });
 
-        if (result.success && result.content) {
+        const normalizedContent = normalizeTextOutput(result.content);
+
+        if (result.success && normalizedContent) {
           const newSummary: GeneratedContent = {
             id: `g${Date.now()}`,
             type: "summary",
             title: `Summary - ${contentTitle}`,
-            content: result.content,
+            content: normalizedContent,
             createdAt: new Date(),
             settings: { length: summaryLength, focus: summaryFocus },
             isRealAI: true,
           };
-          setGeneratedContent(prev => [newSummary, ...prev]);
-          setActiveTab("generated");
+          addGeneratedItem(newSummary);
           toast.success("📄 Summary generated with AI!");
         } else {
-          toast.error(result.error || "Failed to generate summary");
+          console.error("Summary generation failed:", result.error || 'Empty AI response');
+          addFallbackSummary("AI summary generation returned an empty response. A local summary was generated instead.");
         }
       } catch (error) {
         console.error("Summary generation error:", error);
-        toast.error("Failed to connect to AI service");
+        addFallbackSummary("Could not connect to the AI summary service. A local summary was generated instead.");
       }
     } else {
       // Demo mode
@@ -306,8 +405,7 @@ export default function AIStudyTools() {
           settings: { length: summaryLength, focus: summaryFocus },
           isRealAI: false,
         };
-        setGeneratedContent(prev => [newSummary, ...prev]);
-        setActiveTab("generated");
+        addGeneratedItem(newSummary);
         toast.success("📄 Summary generated (Demo Mode)");
       }, 1500);
     }
@@ -317,17 +415,19 @@ export default function AIStudyTools() {
 
   // Generate questions using real AI or mock
   const generateQuestions = async () => {
-    const content = getSourceContent();
-    if (!content) {
+    const source = getSourceDetails();
+    if (!source) {
       toast.error(inputMode === "text" 
         ? "Please enter some text content first" 
-        : "Please select a file first");
+        : uploadedFiles.length > 0
+        ? "Please wait for a material to finish processing or select a ready file"
+        : "Please upload and select a file first");
       return;
     }
 
     setIsGenerating(true);
-    const file = uploadedFiles.find(f => f.id === selectedFile);
-    const contentTitle = inputMode === "text" ? "Pasted Text" : file?.name || "Content";
+    const content = source.content;
+    const contentTitle = source.title;
 
     const addFallbackQuestions = (message: string) => {
       const newQuestions: GeneratedContent = {
@@ -362,12 +462,14 @@ export default function AIStudyTools() {
           includeExplanations,
         });
 
-        if (result.success && result.content) {
+        const normalizedContent = normalizeQuestionOutput(result.content);
+
+        if (result.success && normalizedContent) {
           const newQuestions: GeneratedContent = {
             id: `g${Date.now()}`,
             type: "questions",
             title: `Practice Questions - ${contentTitle}`,
-            content: result.content,
+            content: normalizedContent,
             createdAt: new Date(),
             settings: { 
               difficulty: questionDifficulty, 
@@ -377,8 +479,7 @@ export default function AIStudyTools() {
             },
             isRealAI: true,
           };
-          setGeneratedContent(prev => [newQuestions, ...prev]);
-          setActiveTab("generated");
+          addGeneratedItem(newQuestions);
           toast.success("❓ Practice questions generated with AI!");
         } else {
           console.error("Questions generation failed:", result.error);
@@ -644,7 +745,7 @@ export default function AIStudyTools() {
                         type="file"
                         id="file-upload"
                         className="hidden"
-                        accept=".pdf,.doc,.docx,.ppt,.pptx"
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"
                         multiple
                         onChange={handleFileUpload}
                       />
