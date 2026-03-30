@@ -434,6 +434,12 @@ const CourseDetail = ({ userRole, onLogout }: CourseDetailProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {userRole === "lecturer" && (
+                    <DropdownMenuItem onClick={() => navigate(`/courses/${id}/analytics`)}>
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      View Analytics
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem>
                     <FileText className="w-4 h-4 mr-2" />
                     Export Data

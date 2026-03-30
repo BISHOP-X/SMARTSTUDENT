@@ -379,6 +379,7 @@ const AssignmentDetail = ({ userRole, onLogout }: AssignmentDetailProps) => {
   };
 
   const getDaysUntilDue = () => {
+    if (!assignment) return 0;
     const due = new Date(assignment.dueDate);
     const today = new Date();
     const diffTime = due.getTime() - today.getTime();

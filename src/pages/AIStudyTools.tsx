@@ -269,7 +269,7 @@ export default function AIStudyTools() {
         id: `g${Date.now()}`,
         type: "notes",
         title: `Study Notes - ${contentTitle}`,
-        content: generateMockNotes(notesFormat, notesDetail),
+        content: generateMockNotes(notesFormat, notesDetail, content),
         createdAt: new Date(),
         settings: { format: notesFormat, detail: notesDetail, examples: includeExamples },
         isRealAI: false,
@@ -318,7 +318,7 @@ export default function AIStudyTools() {
           id: `g${Date.now()}`,
           type: "notes",
           title: `Study Notes - ${contentTitle}`,
-          content: generateMockNotes(notesFormat, notesDetail),
+          content: generateMockNotes(notesFormat, notesDetail, content),
           createdAt: new Date(),
           settings: { format: notesFormat, detail: notesDetail, examples: includeExamples },
           isRealAI: false,
@@ -352,7 +352,7 @@ export default function AIStudyTools() {
         id: `g${Date.now()}`,
         type: "summary",
         title: `Summary - ${contentTitle}`,
-        content: generateMockSummary(summaryLength),
+        content: generateMockSummary(summaryLength, content),
         createdAt: new Date(),
         settings: { length: summaryLength, focus: summaryFocus },
         isRealAI: false,
@@ -400,7 +400,7 @@ export default function AIStudyTools() {
           id: `g${Date.now()}`,
           type: "summary",
           title: `Summary - ${contentTitle}`,
-          content: generateMockSummary(summaryLength),
+          content: generateMockSummary(summaryLength, content),
           createdAt: new Date(),
           settings: { length: summaryLength, focus: summaryFocus },
           isRealAI: false,
@@ -434,7 +434,7 @@ export default function AIStudyTools() {
         id: `g${Date.now()}`,
         type: "questions",
         title: `Practice Questions - ${contentTitle}`,
-        content: generateMockQuestions(questionDifficulty, questionCount, questionTypes),
+        content: generateMockQuestions(questionDifficulty, questionCount, questionTypes, content),
         createdAt: new Date(),
         settings: {
           difficulty: questionDifficulty,
@@ -496,7 +496,7 @@ export default function AIStudyTools() {
           id: `g${Date.now()}`,
           type: "questions",
           title: `Practice Questions - ${contentTitle}`,
-          content: generateMockQuestions(questionDifficulty, questionCount, questionTypes),
+          content: generateMockQuestions(questionDifficulty, questionCount, questionTypes, content),
           createdAt: new Date(),
           settings: { 
             difficulty: questionDifficulty, 
@@ -1497,66 +1497,82 @@ export default function AIStudyTools() {
   );
 }
 
-// Mock content generators
-function generateMockNotes(format: string, detail: string) {
-  return `# Study Notes - Cell Biology (${format} format, ${detail} detail)
-
-## Cell Structure
-${format === "bullet" ? `
-• Cells are the basic unit of life
-• Two main types: Prokaryotic and Eukaryotic
-• Prokaryotes: No nucleus, simple structure
-• Eukaryotes: Membrane-bound nucleus and organelles
-` : `
-Cells represent the fundamental unit of all living organisms. There are two primary categories of cells: prokaryotic and eukaryotic. Prokaryotic cells lack a membrane-bound nucleus and possess a relatively simple internal structure. In contrast, eukaryotic cells contain a well-defined nucleus enclosed by a nuclear membrane, along with various specialized organelles.
-`}
-
-## Cell Membrane
-${format === "bullet" ? `
-• Phospholipid bilayer structure
-• Selectively permeable
-• Contains proteins for transport
-• Maintains cell shape and protection
-` : `
-The cell membrane consists of a phospholipid bilayer that serves as a selectively permeable barrier. This structure controls the passage of substances in and out of the cell. Embedded proteins facilitate various transport mechanisms, while the membrane also provides structural support and protection to the cell.
-`}
-
-[AI Generated Content - Full notes would continue with all detected topics]`;
+// Mock content generators — content-aware: extract key sentences from the source material
+function extractKeyPoints(content: string, count: number): string[] {
+  const sentences = content
+    .replace(/\n+/g, '. ')
+    .split(/[.!?]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 20 && s.length < 300);
+  const unique = [...new Set(sentences)];
+  // Pick evenly spaced sentences so we cover the whole document
+  const step = Math.max(1, Math.floor(unique.length / count));
+  const picked: string[] = [];
+  for (let i = 0; i < unique.length && picked.length < count; i += step) {
+    picked.push(unique[i]);
+  }
+  return picked.length > 0 ? picked : ["The provided content covers several important topics."];
 }
 
-function generateMockSummary(length: string) {
-  const brief = "This material covers fundamental concepts in cell biology, focusing on cell structure, organelles, and membrane function. Key topics include the differences between prokaryotic and eukaryotic cells, the role of various organelles in cellular processes, and transport mechanisms across membranes.";
-  
-  const moderate = brief + "\n\nThe content explores cell structure in detail, explaining how the phospholipid bilayer forms the foundation of the cell membrane and controls substance movement. Various organelles are discussed, including mitochondria for energy production, ribosomes for protein synthesis, and the endoplasmic reticulum for protein and lipid processing. Transport mechanisms such as diffusion, osmosis, and active transport are explained with their energy requirements and directional flow.";
-  
-  const detailed = moderate + "\n\nFurther analysis reveals the intricate relationships between cellular components and their functions. The material emphasizes how cellular processes are interconnected, from DNA transcription in the nucleus to protein synthesis in ribosomes and subsequent modifications in the Golgi apparatus. Real-world applications include understanding disease mechanisms, drug development targeting specific cellular pathways, and biotechnology applications in genetic engineering. The content provides a comprehensive foundation for advanced studies in molecular biology and cellular biochemistry.";
-  
-  return length === "brief" ? brief : length === "moderate" ? moderate : detailed;
+function generateMockNotes(format: string, detail: string, sourceContent?: string) {
+  const title = sourceContent ? sourceContent.slice(0, 60).replace(/\n/g, ' ').trim() : "Study Material";
+  const points = extractKeyPoints(sourceContent || "", detail === "brief" ? 6 : detail === "moderate" ? 10 : 15);
+
+  if (format === "bullet") {
+    return `# Study Notes - ${title}...\n\n${points.map(p => `• ${p}`).join('\n')}\n\n[Generated from your uploaded content — these are key extracted points]`;
+  }
+  return `# Study Notes - ${title}...\n\n${points.join('. ')}.\n\n[Generated from your uploaded content — these are key extracted points]`;
 }
 
-function generateMockQuestions(difficulty: string, count: number, types: string[]): string {
-  const bank: QuizQuestion[] = [
-    { question: "What is the primary function of mitochondria?", type: "multiple_choice", options: ["Protein synthesis", "ATP production through cellular respiration", "Lipid storage", "DNA replication"], answer: "ATP production through cellular respiration", explanation: "Mitochondria generate ATP via oxidative phosphorylation — they are the powerhouse of the cell." },
-    { question: "Which organelle is responsible for protein synthesis?", type: "multiple_choice", options: ["Nucleus", "Golgi apparatus", "Ribosome", "Lysosome"], answer: "Ribosome", explanation: "Ribosomes translate mRNA into proteins during the process of translation." },
-    { question: "What controls what enters and exits the cell?", type: "multiple_choice", options: ["Cell wall", "Nucleus", "Cell membrane", "Cytoplasm"], answer: "Cell membrane", explanation: "The selectively permeable cell membrane regulates movement of substances in and out of the cell." },
-    { question: "DNA replication occurs during which phase?", type: "multiple_choice", options: ["G1 phase", "S phase", "G2 phase", "M phase"], answer: "S phase", explanation: "DNA synthesis occurs during the S (synthesis) phase of interphase." },
-    { question: "Which process converts glucose into pyruvate?", type: "multiple_choice", options: ["Krebs cycle", "Glycolysis", "Oxidative phosphorylation", "Beta oxidation"], answer: "Glycolysis", explanation: "Glycolysis breaks glucose into two pyruvate molecules in the cytoplasm." },
-    { question: "The nucleus contains the genetic material of the cell.", type: "true_false", options: ["True", "False"], answer: "True", explanation: "The nucleus houses DNA organized into chromosomes and is the control center of eukaryotic cells." },
-    { question: "Photosynthesis occurs in the mitochondria.", type: "true_false", options: ["True", "False"], answer: "False", explanation: "Photosynthesis occurs in chloroplasts. Mitochondria handle cellular respiration." },
-    { question: "All cells have a cell wall.", type: "true_false", options: ["True", "False"], answer: "False", explanation: "Only plant cells, fungi, and some bacteria have cell walls. Animal cells only have cell membranes." },
-    { question: "Describe the difference between passive and active transport.", type: "short_answer", options: [], answer: "Passive transport moves substances from high to low concentration without energy. Active transport moves substances against the gradient and requires ATP.", explanation: "The key distinction is energy requirement and direction relative to the concentration gradient." },
-    { question: "What is the role of ATP in cellular processes?", type: "short_answer", options: [], answer: "ATP is the primary energy currency of the cell, providing energy for muscle contraction, active transport, and biosynthesis.", explanation: "ATP stores and transfers energy through its high-energy phosphate bonds." },
-  ];
+function generateMockSummary(length: string, sourceContent?: string) {
+  const points = extractKeyPoints(sourceContent || "", length === "brief" ? 3 : length === "moderate" ? 6 : 10);
+  return points.join('. ') + '.\n\n[Generated from your uploaded content]';
+}
 
+function generateMockQuestions(difficulty: string, count: number, types: string[], sourceContent?: string): string {
+  const points = extractKeyPoints(sourceContent || "", Math.max(count, 5));
   const targetCount = Math.min(count, 10);
   const questions: QuizQuestion[] = [];
   const typeList = types.length > 0 ? types : ["multiple_choice"];
 
   for (let i = 0; i < targetCount; i++) {
+    const point = points[i % points.length];
+    // Extract a keyword (longest word) from the sentence to build a distractor set
+    const words = point.split(/\s+/).filter(w => w.length > 3);
+    const keyword = words.sort((a, b) => b.length - a.length)[0] || "concept";
     const preferredType = typeList[i % typeList.length];
-    const pool = bank.filter(q => q.type === preferredType || (preferredType === 'essay' && q.type === 'short_answer') || (preferredType === 'fill_blank' && q.type === 'short_answer'));
-    const source = pool.length > 0 ? pool : bank.filter(q => q.type === 'multiple_choice');
-    questions.push(source[i % source.length]);
+
+    if (preferredType === "true_false") {
+      questions.push({
+        question: `True or False: ${point}`,
+        type: "true_false",
+        options: ["True", "False"],
+        answer: "True",
+        explanation: `This statement is based on the provided study material.`,
+      });
+    } else if (preferredType === "short_answer" || preferredType === "essay") {
+      questions.push({
+        question: `Explain the following concept from your study material: "${point.slice(0, 80)}..."`,
+        type: "short_answer",
+        options: [],
+        answer: point,
+        explanation: "Refer back to your study material for a detailed explanation.",
+      });
+    } else {
+      // multiple_choice / fill_blank — build from the content
+      questions.push({
+        question: `Based on your study material, which of the following is correct about "${keyword}"?`,
+        type: "multiple_choice",
+        options: [
+          point.length > 80 ? point.slice(0, 80) + "..." : point,
+          `${keyword} is not discussed in this context`,
+          `This topic is unrelated to ${keyword}`,
+          `None of the above`,
+        ],
+        answer: point.length > 80 ? point.slice(0, 80) + "..." : point,
+        explanation: `This is directly stated in your study material.`,
+      });
+    }
   }
 
   return JSON.stringify(questions);

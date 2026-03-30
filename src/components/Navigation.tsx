@@ -66,7 +66,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
     { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
     { id: "courses", label: "My Courses", icon: BookOpen, path: "/courses" },
     { id: "grading", label: "Grading Queue", icon: ClipboardCheck, path: "/grading" },
-    { id: "analytics", label: "Analytics", icon: BarChart3, path: "/courses/1/analytics" },
+    { id: "analytics", label: "Analytics", icon: BarChart3, path: "/analytics" },
     { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
     { id: "profile", label: "Profile", icon: User, path: "/profile" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },

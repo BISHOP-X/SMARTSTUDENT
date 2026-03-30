@@ -13,6 +13,7 @@ import AssignmentDetail from "./pages/AssignmentDetail";
 import MySubmissions from "./pages/MySubmissions";
 import GradingQueue from "./pages/GradingQueue";
 import CourseAnalytics from "./pages/CourseAnalytics";
+import AnalyticsHub from "./pages/AnalyticsHub";
 import Calendar from "./pages/Calendar";
 import Goals from "./pages/Goals";
 import Profile from "./pages/Profile";
@@ -103,6 +104,14 @@ const AppRoutes = () => {
         element={
           <RoleProtectedRoute allowedRoles={["lecturer"]}>
             <GradingQueue userRole={role} onLogout={logout} />
+          </RoleProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <RoleProtectedRoute allowedRoles={["lecturer"]}>
+            <AnalyticsHub />
           </RoleProtectedRoute>
         }
       />

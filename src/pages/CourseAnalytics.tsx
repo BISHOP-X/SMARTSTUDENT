@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, TrendingUp, Users, FileText, Target, Download, AlertCircle, MessageSquare, Send } from "lucide-react";
+import { ArrowLeft, TrendingUp, Users, FileText, Target, Download, AlertCircle, MessageSquare, Send, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import Navigation from "@/components/Navigation";
-import { mockCourseAnalytics } from "@/data/mockData";
+import { mockCourseAnalytics, type CourseAnalytics as CourseAnalyticsType } from "@/data/mockData";
+import { getCourse, getCourseStudents } from "@/lib/course-service";
+import { getCourseAssignments } from "@/lib/assignment-service";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import {
   BarChart,
@@ -35,9 +38,155 @@ export default function CourseAnalytics() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [analytics, setAnalytics] = useState<CourseAnalyticsType | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Only show analytics in demo mode
-  const analytics = isDemo ? mockCourseAnalytics[courseId] : null;
+  // Load real analytics from DB data
+  useEffect(() => {
+    if (isDemo) {
+      setAnalytics(mockCourseAnalytics[courseId] || null);
+      return;
+    }
+    if (!id) return;
+    const loadAnalytics = async () => {
+      setIsLoading(true);
+      try {
+        const [courseResult, studentsResult, assignmentsResult] = await Promise.all([
+          getCourse(id),
+          getCourseStudents(id),
+          getCourseAssignments(id),
+        ]);
+
+        const course = courseResult.course;
+        const students = studentsResult.students || [];
+        const assignments = assignmentsResult.assignments || [];
+
+        if (!course) { setIsLoading(false); return; }
+
+        // Fetch all submissions for this course's assignments
+        const assignmentIds = assignments.map(a => a.id);
+        let allSubmissions: any[] = [];
+        if (assignmentIds.length > 0) {
+          const { data: subs } = await supabase
+            .from('submissions')
+            .select('*, student:profiles(full_name)')
+            .in('assignment_id', assignmentIds);
+          allSubmissions = subs || [];
+        }
+
+        // Compute grade distribution
+        const graded = allSubmissions.filter(s => s.manual_score !== null || s.ai_score !== null);
+        const scores = graded.map(s => {
+          const score = s.manual_score ?? s.ai_score ?? 0;
+          const maxScore = assignments.find(a => a.id === s.assignment_id)?.max_score || 100;
+          return (score / maxScore) * 100;
+        });
+
+        const gradeBuckets = [
+          { range: "90-100", min: 90, max: 100 },
+          { range: "80-89", min: 80, max: 89 },
+          { range: "70-79", min: 70, max: 79 },
+          { range: "60-69", min: 60, max: 69 },
+          { range: "0-59", min: 0, max: 59 },
+        ];
+        const gradeDistribution = gradeBuckets.map(b => {
+          const count = scores.filter(s => s >= b.min && s <= b.max).length;
+          return { range: b.range, count, percentage: scores.length > 0 ? (count / scores.length) * 100 : 0 };
+        });
+
+        const averageGrade = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+        const totalStudents = students.length;
+        const submissionRate = totalStudents > 0 && assignments.length > 0
+          ? (allSubmissions.length / (totalStudents * assignments.length)) * 100
+          : 0;
+
+        // Assignment performance
+        const assignmentPerformance = assignments.map(a => {
+          const subs = allSubmissions.filter(s => s.assignment_id === a.id);
+          const gradedSubs = subs.filter(s => s.manual_score !== null || s.ai_score !== null);
+          const avgScore = gradedSubs.length > 0
+            ? gradedSubs.reduce((acc, s) => acc + ((s.manual_score ?? s.ai_score ?? 0) / a.max_score) * 100, 0) / gradedSubs.length
+            : 0;
+          return {
+            assignmentTitle: a.title,
+            averageScore: avgScore,
+            submissionRate: totalStudents > 0 ? (subs.length / totalStudents) * 100 : 0,
+            dueDate: a.due_date,
+          };
+        });
+
+        // Per-student stats
+        const studentStats = students.map(s => {
+          const name = (s.profile as any)?.full_name || "Unknown";
+          const studentSubs = allSubmissions.filter(sub => sub.student_id === s.student_id);
+          const studentGraded = studentSubs.filter(sub => sub.manual_score !== null || sub.ai_score !== null);
+          const avgGrade = studentGraded.length > 0
+            ? studentGraded.reduce((acc, sub) => {
+                const maxScore = assignments.find(a => a.id === sub.assignment_id)?.max_score || 100;
+                return acc + ((sub.manual_score ?? sub.ai_score ?? 0) / maxScore) * 100;
+              }, 0) / studentGraded.length
+            : 0;
+          const missedDeadlines = assignments.filter(a => {
+            const due = new Date(a.due_date);
+            const hasSub = studentSubs.some(sub => sub.assignment_id === a.id);
+            return due < new Date() && !hasSub;
+          }).length;
+          return { studentName: name, averageGrade: avgGrade, assignmentsCompleted: studentGraded.length, missedDeadlines };
+        });
+
+        const topPerformers = [...studentStats].sort((a, b) => b.averageGrade - a.averageGrade).slice(0, 5);
+        const strugglingStudents = [...studentStats]
+          .filter(s => s.averageGrade < 70 || s.missedDeadlines > 0)
+          .sort((a, b) => a.averageGrade - b.averageGrade)
+          .slice(0, 5);
+
+        // Performance over time (group submissions by week)
+        const performanceOverTime = (() => {
+          if (graded.length === 0) return [];
+          const sorted = [...graded].sort((a, b) => new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime());
+          const weeks: Record<string, { total: number; count: number }> = {};
+          sorted.forEach(s => {
+            const d = new Date(s.submitted_at);
+            const weekStart = new Date(d);
+            weekStart.setDate(d.getDate() - d.getDay());
+            const key = weekStart.toISOString().split('T')[0];
+            const maxScore = assignments.find(a => a.id === s.assignment_id)?.max_score || 100;
+            const pct = ((s.manual_score ?? s.ai_score ?? 0) / maxScore) * 100;
+            if (!weeks[key]) weeks[key] = { total: 0, count: 0 };
+            weeks[key].total += pct;
+            weeks[key].count += 1;
+          });
+          return Object.entries(weeks).map(([date, v]) => ({
+            date,
+            averageScore: Math.round(v.total / v.count),
+            submissionCount: v.count,
+          }));
+        })();
+
+        // Ensure we always have at least a placeholder entry for empty arrays
+        const safePeformers = topPerformers.length > 0 ? topPerformers : [{ studentName: "No data", averageGrade: 0, assignmentsCompleted: 0, missedDeadlines: 0 }];
+        const safeStruggling = strugglingStudents.length > 0 ? strugglingStudents : [{ studentName: "No data", averageGrade: 0, assignmentsCompleted: 0, missedDeadlines: 0 }];
+
+        setAnalytics({
+          courseId: parseInt(id) || 0,
+          courseName: course.title,
+          courseCode: course.course_code,
+          totalStudents,
+          averageGrade,
+          submissionRate: Math.min(submissionRate, 100),
+          gradeDistribution,
+          assignmentPerformance,
+          topPerformers: safePeformers,
+          strugglingStudents: safeStruggling,
+          performanceOverTime,
+        });
+      } catch (err) {
+        console.error("Failed to load analytics:", err);
+      }
+      setIsLoading(false);
+    };
+    loadAnalytics();
+  }, [id, isDemo, courseId]);
 
   const sendFeedback = () => {
     // TODO: API call to send feedback/advice to student
@@ -46,6 +195,20 @@ export default function CourseAnalytics() {
     setFeedbackOpen(false);
     setFeedbackMessage("");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-background">
+        <Navigation activeTab="analytics" onTabChange={() => {}} onLogout={logout} />
+        <div className="flex-1 overflow-auto flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 mx-auto text-primary mb-4 animate-spin" />
+            <p className="text-muted-foreground">Loading analytics...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!analytics) {
     return (

@@ -61,6 +61,20 @@ export async function createCourse(data: {
   return { success: true, course };
 }
 
+// ---- Helper: attach enrollment counts to courses ----
+async function attachStudentCounts(courses: Course[]): Promise<Course[]> {
+  if (courses.length === 0) return courses;
+  const ids = courses.map(c => c.id);
+  const { data: rows } = await supabase
+    .from('enrollments')
+    .select('course_id')
+    .in('course_id', ids);
+
+  const counts: Record<string, number> = {};
+  (rows || []).forEach(r => { counts[r.course_id] = (counts[r.course_id] || 0) + 1; });
+  return courses.map(c => ({ ...c, student_count: counts[c.id] || 0 }));
+}
+
 // ---- Get courses for current user ----
 export async function getMyCourses(): Promise<{ courses: Course[]; error?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -82,7 +96,7 @@ export async function getMyCourses(): Promise<{ courses: Course[]; error?: strin
       .order('created_at', { ascending: false });
 
     if (error) return { courses: [], error: error.message };
-    return { courses: courses || [] };
+    return { courses: await attachStudentCounts(courses || []) };
   } else {
     // Students see courses they're enrolled in
     const { data: enrollments, error } = await supabase
@@ -92,7 +106,7 @@ export async function getMyCourses(): Promise<{ courses: Course[]; error?: strin
 
     if (error) return { courses: [], error: error.message };
     const courses = enrollments?.map(e => e.course).filter(Boolean) as Course[] || [];
-    return { courses };
+    return { courses: await attachStudentCounts(courses) };
   }
 }
 
@@ -104,7 +118,7 @@ export async function getAllCourses(): Promise<{ courses: Course[]; error?: stri
     .order('created_at', { ascending: false });
 
   if (error) return { courses: [], error: error.message };
-  return { courses: courses || [] };
+  return { courses: await attachStudentCounts(courses || []) };
 }
 
 // ---- Get single course by ID ----
